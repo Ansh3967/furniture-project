@@ -9,9 +9,14 @@ import router from "./router.js";
 app.use("/", router);
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 =======
+=======
+
+app.use(express.urlencoded({ extended: true }));
+>>>>>>> Stashed changes
 
 app.use(express.urlencoded({ extended: true }));
 >>>>>>> Stashed changes
