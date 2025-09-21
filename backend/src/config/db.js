@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
+import { config } from "./index.js";
+
 
 export const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log();
+
+    await mongoose.connect(config.dbUrl || "");
 
     console.log(`Connected to Database`);
   } catch (error) {

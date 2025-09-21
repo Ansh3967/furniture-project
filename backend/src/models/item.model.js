@@ -4,34 +4,47 @@ const itemSchema = new mongoose.Schema(
   {
     itemId: {
       type: String,
-      required: true,
-      unique: true,
-      maxlength: 10,
     },
     name: {
       type: String,
-      required: true,
-      maxlength: 25,
+      required: false,
+      maxlength: [25, "Name cannot exceed 25 characters"],
+      trim: true,
+      description: "Name of the item"
     },
     color: {
       type: String,
-      required: true,
-      maxlength: 25,
+      required: false,
+      maxlength: [25, "Color cannot exceed 25 characters"],
+      trim: true,
+      description: "Color of the item"
     },
-    buy_price: {
-      type: Number, // was VARCHAR in SQL, but better as Number
+    buyPrice: {
+      type: Number,
+      required: false,
+      min: [0, "Buy price cannot be negative"],
       default: null,
+      description: "Price to buy the item"
     },
-    rent_price: {
-      type: Number, // CHAR(10) → Number
+    rentPrice: {
+      type: Number,
+      required: false,
+      min: [0, "Rent price cannot be negative"],
       default: null,
+      description: "Price to rent the item"
     },
-    deposit_price: {
-      type: Number, // CHAR(10) → Number
+    depositPrice: {
+      type: Number,
+      required: false,
+      min: [0, "Deposit price cannot be negative"],
       default: null,
-    },
+      description: "Deposit required for the item"
+    }
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    collection: "items"
+  }
 );
 
-export const Item = mongoose.model("Item", itemSchema);
+export default mongoose.model("Item", itemSchema);
