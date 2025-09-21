@@ -1,5 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config({ path: './config.env' });
 import express from "express";
 const app = express();
 import { config } from "./config/index.js";
@@ -10,8 +8,6 @@ app.use("/", router);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-app.use(express.urlencoded({ extended: true }));
 
 app.listen(config.port, async () => {
   await connectDB();
