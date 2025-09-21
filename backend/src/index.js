@@ -8,8 +8,13 @@ import router from "./router.js";
 
 app.use("/", router);
 
+<<<<<<< Updated upstream
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+=======
+
+app.use(express.urlencoded({ extended: true }));
+>>>>>>> Stashed changes
 
 app.listen(config.port, async () => {
   await connectDB();
