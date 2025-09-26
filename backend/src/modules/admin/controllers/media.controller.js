@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import Media from "../models/media.model.js";
+import Media from "../../../models/media.model.js";
 
 export const uploadMedia = async (req, res) => {
   try {

@@ -1,10 +1,8 @@
 import express from "express";
-import itemRouter from "./routes/item.route.js";
-import mediaRouter from "./routes/media.route.js";
+import adminRouter from "./modules/admin/routes/index.route.js";
 
 const router = express.Router();
 
-router.use("/item", itemRouter);
-router.use("/media", mediaRouter);
+router.use("/admin",adminRouter);
 
 export default router;
