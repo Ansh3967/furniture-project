@@ -9,6 +9,7 @@ export const add = {
 };
 
 export const edit = {
+  id: Joi.string().required(),
   name: Joi.string().trim(),
   color: Joi.string().trim(),
   buyPrice: Joi.number().allow(null),
@@ -17,4 +18,11 @@ export const edit = {
 };
 
 export const list = {};
-export const remove = {};
+
+export const get = {
+  id: Joi.string().required(),
+};
+
+export const remove = {
+  id: Joi.string().required(),
+};

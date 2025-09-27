@@ -5,10 +5,10 @@ import validate from "../../../middlewares/validate.js";
 
 const itemRouter = Router();
 
-itemRouter.get("/", controller.list);
-itemRouter.get("/:itemId", controller.get);
+itemRouter.post("/list", validate(validation.list), controller.list);
+itemRouter.post("/get", validate(validation.get), controller.get);
 itemRouter.post("/add", validate(validation.add), controller.add);
-itemRouter.put("/:itemId", validate(validation.edit), controller.edit);
-itemRouter.delete("/:itemId", controller.remove);
+itemRouter.post("/edit", validate(validation.edit), controller.edit);
+itemRouter.post("/remove", validate(validation.remove), controller.remove);
 
 export default itemRouter;

@@ -15,13 +15,15 @@ authRouter.post(
 authRouter.post("/login", validate(validation.login), controller.login);
 
 // Protected routes with passport authentication
-authRouter.get(
+authRouter.post(
   "/profile",
   passport.authenticate("admin", { session: false }),
-  controller.profileGet
+  validate(validation.profile),
+  controller.profile
 );
-authRouter.put(
-  "/profile",
+
+authRouter.post(
+  "/profile/edit",
   passport.authenticate("admin", { session: false }),
   validate(validation.profileEdit),
   controller.profileEdit
