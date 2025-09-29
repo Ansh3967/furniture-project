@@ -8,31 +8,31 @@ const itemRouter = Router();
 
 itemRouter.post(
   "/list",
-  passport.authenticate("admin", { session: false }),
+  passport.authenticate("user", { session: false }),
   validate(validation.list),
   controller.list
 );
 itemRouter.post(
   "/get",
-  passport.authenticate("admin", { session: false }),
+  passport.authenticate("user", { session: false }),
   validate(validation.get),
   controller.get
 );
 itemRouter.post(
   "/add",
-  passport.authenticate("admin", { session: false }),
+  passport.authenticate("user", { session: false }),
   validate(validation.add),
   controller.add
 );
 itemRouter.post(
   "/edit",
-  passport.authenticate("admin", { session: false }),
+  passport.authenticate("user", { session: false }),
   validate(validation.edit),
   controller.edit
 );
 itemRouter.post(
   "/remove",
-  passport.authenticate("admin", { session: false }),
+  passport.authenticate("user", { session: false }),
   validate(validation.remove),
   controller.remove
 );

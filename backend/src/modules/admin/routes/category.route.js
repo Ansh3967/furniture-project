@@ -1,40 +1,34 @@
 import { Router } from "express";
-import * as controller from "../controllers/item.controller.js";
-import * as validation from "../validation/item.validation.js";
+import * as controller from "../controllers/category.controller.js";
+import * as validation from "../validation/category.validation.js";
 import validate from "../../../middlewares/validate.js";
 import passport from "passport";
 
-const itemRouter = Router();
+const categoryRouter = Router();
 
-itemRouter.post(
+categoryRouter.post(
   "/list",
   passport.authenticate("admin", { session: false }),
   validate(validation.list),
   controller.list
 );
-itemRouter.post(
-  "/get",
-  passport.authenticate("admin", { session: false }),
-  validate(validation.get),
-  controller.get
-);
-itemRouter.post(
+categoryRouter.post(
   "/add",
   passport.authenticate("admin", { session: false }),
   validate(validation.add),
   controller.add
 );
-itemRouter.post(
+categoryRouter.post(
   "/edit",
   passport.authenticate("admin", { session: false }),
   validate(validation.edit),
   controller.edit
 );
-itemRouter.post(
+categoryRouter.post(
   "/remove",
   passport.authenticate("admin", { session: false }),
   validate(validation.remove),
   controller.remove
 );
 
-export default itemRouter;
+export default categoryRouter;

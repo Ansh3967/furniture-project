@@ -7,10 +7,28 @@ const itemSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    color: {
+    description: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
+    },
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
+    furnitureStatus: {
+      type: String,
+      enum: ["in stock", "out of stock"],
+      required: true,
+      default: "in stock",
+    },
+    // New field: saleType (for sale, rent, or both)
+    saleType: {
+      type: String,
+      enum: ["sale", "rent", "both"],
+      required: true,
+      default: "sale",
     },
     buyPrice: {
       type: Number,
@@ -24,6 +42,19 @@ const itemSchema = new mongoose.Schema(
     },
     depositPrice: {
       type: Number,
+      required: false,
+      default: null,
+    },
+    // New field: warranty
+    warranty: {
+      type: String,
+      required: false,
+      trim: true,
+      default: null,
+    },
+    mediaId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Media",
       required: false,
       default: null,
     },
