@@ -5,14 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useApp, type UserRole } from '@/contexts/AppContext';
+import { useApp } from '@/contexts/AppContext';
+import { authService } from '@/services/authService';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('user');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -20,39 +19,83 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleUserLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      if (email && password) {
-        const user = {
-          id: Math.random().toString(36).substr(2, 9),
-          name: email.split('@')[0],
-          email,
-          phone: '+1 (555) 123-4567',
-          address: '123 Main St, City, State 12345',
-          role
-        };
+    try {
+      const response = await authService.userLogin({ email, password });
+      localStorage.setItem('token', response.token);
+      
+      const user = {
+        id: response.user._id,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        email: response.user.email,
+        phone: response.user.phone,
+        role: 'user' as const
+      };
 
-        dispatch({ type: 'LOGIN', payload: user });
-        
-        toast({
-          title: 'Login successful!',
-          description: `Welcome back, ${user.name}!`,
-        });
+      dispatch({ type: 'USER_LOGIN', payload: user });
+      
+      toast({
+        title: 'Login successful!',
+        description: `Welcome back, ${user.firstName}!`,
+      });
 
-        navigate('/dashboard');
-      } else {
-        toast({
-          title: 'Login failed',
-          description: 'Please enter valid credentials.',
-          variant: 'destructive',
-        });
-      }
+      navigate('/dashboard');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : 'Please enter valid credentials.';
+      
+      toast({
+        title: 'Login failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await authService.adminLogin({ email, password });
+      localStorage.setItem('token', response.token);
+      
+      const admin = {
+        id: response.admin._id,
+        username: response.admin.username,
+        email: response.admin.email,
+        isActive: response.admin.isActive,
+        role: 'admin' as const
+      };
+
+      dispatch({ type: 'ADMIN_LOGIN', payload: admin });
+      
+      toast({
+        title: 'Admin login successful!',
+        description: `Welcome back, ${admin.username}!`,
+      });
+
+      navigate('/dashboard');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error && 'response' in error 
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : 'Please enter valid credentials.';
+      
+      toast({
+        title: 'Login failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -66,21 +109,7 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="role">Account Type</Label>
-                <Select value={role} onValueChange={(value: UserRole) => setRole(value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select account type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="user">Customer</SelectItem>
-                    <SelectItem value="seller">Seller</SelectItem>
-                    <SelectItem value="buyer">Business Buyer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
+            <div className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -120,13 +149,26 @@ const Login = () => {
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full bg-gradient-primary hover:opacity-90"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  type="button"
+                  onClick={handleUserLogin}
+                  className="w-full bg-gradient-primary hover:opacity-90"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Signing in...' : 'Sign In as Customer'}
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={handleAdminLogin}
+                  variant="outline"
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Signing in...' : 'Sign In as Admin'}
+                </Button>
+              </div>
 
               <div className="text-center text-sm">
                 <Link to="#" className="text-accent hover:underline">
@@ -140,15 +182,15 @@ const Login = () => {
                   Sign up here
                 </Link>
               </div>
-            </form>
+            </div>
 
             <div className="mt-6 pt-6 border-t border-border">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-3">Demo Credentials</p>
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p><strong>Customer:</strong> user@demo.com / password123</p>
-                  <p><strong>Seller:</strong> seller@demo.com / password123</p>
-                  <p><strong>Buyer:</strong> buyer@demo.com / password123</p>
+                  <p><strong>Admin:</strong> admin@demo.com / password123</p>
+                  <p><strong>Test User:</strong> john@test.com / password123</p>
                 </div>
               </div>
             </div>

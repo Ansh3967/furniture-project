@@ -10,14 +10,18 @@ import FurnitureListing from "./pages/FurnitureListing";
 import FurnitureDetail from "./pages/FurnitureDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import UserSignup from "./pages/UserSignup";
+import AdminSignup from "./pages/AdminSignup";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
-import About from "./pages/about";
+import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
 import Orders from "./pages/Orders";
 import NotFound from "./pages/NotFound";
+import IntegrationTest from "./components/IntegrationTest";
+import AuthTest from "./components/AuthTest";
 
 const queryClient = new QueryClient();
 
@@ -37,12 +41,16 @@ const App = () => (
               <Route path="/furniture/:id" element={<FurnitureDetail />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/signup/user" element={<UserSignup />} />
+              <Route path="/signup/admin" element={<AdminSignup />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/orders" element={<Orders />} />
+              <Route path="/test" element={<IntegrationTest />} />
+              <Route path="/auth-test" element={<AuthTest />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
