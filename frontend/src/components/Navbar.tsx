@@ -48,7 +48,7 @@ const Navbar = () => {
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">F</span>
             </div>
-            <span className="font-bold text-xl text-primary">FurnishHome</span>
+            <span className="font-bold text-xl text-primary">Furnish Home</span>
           </Link>
 
           {/* Desktop Navigation */}
