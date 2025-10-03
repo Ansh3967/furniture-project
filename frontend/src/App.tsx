@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import About from "./pages/about";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
@@ -31,6 +32,7 @@ const App = () => (
             <Navbar />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
               <Route path="/furniture" element={<FurnitureListing />} />
               <Route path="/furniture/:id" element={<FurnitureDetail />} />
               <Route path="/login" element={<Login />} />
