@@ -7,12 +7,14 @@ import router from "./router.js";
 import passport from "./services/passport.service.js";
 
 // CORS configuration
-app.use(cors({
-  origin: ["http://localhost:8080", "http://localhost:3000"], // Frontend URLs
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:8080", "http://localhost:3000"], // Frontend URLs
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use("/uploads", express.static("uploads"));
 app.use(express.json());
@@ -21,7 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 // Initialize passport
 app.use(passport.initialize());
 
-app.use("/api", router);
+app.use("/", router);
 
 app.listen(config.port, async () => {
   await connectDB();
