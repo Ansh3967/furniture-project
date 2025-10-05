@@ -14,7 +14,7 @@ import UserSignup from "./pages/UserSignup";
 import AdminSignup from "./pages/AdminSignup";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
-import About from "./pages/About";
+import About from "./pages/about";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
