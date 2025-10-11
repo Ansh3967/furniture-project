@@ -60,7 +60,11 @@ export const login = async (req, res) => {
       username: admin.username,
       email: admin.email,
     };
-    const token = jwt.sign(payload, process.env.JWT_SECRET || "secret");
+
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET || "your-super-secret-jwt-key-change-this-in-production", {
+      expiresIn: "1d",
+    });
 
     res.json({
       token,

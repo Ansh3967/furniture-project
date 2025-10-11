@@ -1,9 +1,11 @@
 import Joi from "joi";
 
 export const register = {
-  username: Joi.string().required(),
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
+  phone: Joi.string().required(),
 };
 
 export const login = {
@@ -12,8 +14,11 @@ export const login = {
 };
 
 export const profile = {};
+
 export const profileEdit = {
-  username: Joi.string(),
+  firstName: Joi.string(),
+  lastName: Joi.string(),
   email: Joi.string().email(),
+  phone: Joi.string(),
   password: Joi.string(),
 };

@@ -1,77 +1,87 @@
-import Admin from "../../../models/admin.model.js";
+import User from "../../../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-// Register Admin
+// Register User
 export const register = async (req, res) => {
   try {
     const requestData = req.body;
-    const { username, password, email } = requestData;
+    const { firstName, lastName, email, password, phone } = requestData;
 
     // Check if user already exists
-    const existingAdmin = await Admin.findOne({
-      $or: [{ username }, { email }],
-    });
-    if (existingAdmin) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res
         .status(400)
-        .json({ message: "Username or email already exists" });
+        .json({ message: "Email already exists" });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create admin
-    const admin = new Admin({
-      username,
-      password: hashedPassword,
+    // Create user
+    const user = new User({
+      firstName,
+      lastName,
       email,
+      password: hashedPassword,
+      phone,
     });
 
-    await admin.save();
+    await user.save();
 
-    res.status(201).json({ message: "Admin registered successfully" });
+    res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-// Login Admin (by email)
+// Login User
 export const login = async (req, res) => {
   try {
     const requestData = req.body;
     const { email, password } = requestData;
 
-    // Find admin by email
-    const admin = await Admin.findOne({ email });
-    if (!admin) {
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
     // Compare password
-    const isMatch = await bcrypt.compare(password, admin.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
     // Generate JWT
     const payload = {
-      id: admin._id,
-      username: admin.username,
-      email: admin.email,
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
     };
-    const token = jwt.sign(payload, process.env.JWT_SECRET || "secret");
+    const token = jwt.sign(payload, process.env.JWT_SECRET || "your-super-secret-jwt-key-change-this-in-production", {
+      expiresIn: "1d",
+    });
+
 
     res.json({
       token,
-      admin: { id: admin._id, username: admin.username, email: admin.email },
+      user: { 
+        _id: user._id, 
+        firstName: user.firstName, 
+        lastName: user.lastName, 
+        email: user.email,
+        phone: user.phone 
+      },
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-// Get Admin Profile
+// Get User Profile
 export const profile = async (req, res) => {
   try {
     // Check if req.user exists and has an _id property
@@ -81,47 +91,34 @@ export const profile = async (req, res) => {
         .json({ message: "Unauthorized: Invalid or missing token" });
     }
 
-    const admin = await Admin.findById(req.user._id).select("-password");
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found" });
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(admin);
+    res.json(user);
   } catch (err) {
     // Handle possible JSON parse errors or other server errors
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-// Edit Admin Profile
+// Edit User Profile
 export const profileEdit = async (req, res) => {
   try {
     const user = req.user;
     const requestData = req.body;
     const updates = {};
-    const allowedFields = ["username", "email", "password"];
+    const allowedFields = ["firstName", "lastName", "email", "phone", "password"];
     allowedFields.forEach((field) => {
       if (requestData[field]) {
         updates[field] = requestData[field];
       }
     });
 
-    // Check if username is being updated and is already taken by another admin
-    if (updates.username) {
-      const existingUsername = await Admin.findOne({
-        username: updates.username,
-        _id: { $ne: user._id },
-      });
-      if (existingUsername) {
-        return res
-          .status(400)
-          .json({ message: "Username is already taken by another user." });
-      }
-    }
-
-    // Check if email is being updated and is already taken by another admin
+    // Check if email is being updated and is already taken by another user
     if (updates.email) {
-      const existingEmail = await Admin.findOne({
+      const existingEmail = await User.findOne({
         email: updates.email,
         _id: { $ne: user._id },
       });
@@ -137,17 +134,17 @@ export const profileEdit = async (req, res) => {
       updates.password = await bcrypt.hash(updates.password, 10);
     }
 
-    const admin = await Admin.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
       user._id,
       { $set: updates },
       { new: true, runValidators: true }
     ).select("-password");
 
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found" });
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({ message: "Profile updated successfully", admin });
+    res.json({ message: "Profile updated successfully", user: updatedUser });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }

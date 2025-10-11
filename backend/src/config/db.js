@@ -3,7 +3,7 @@ import { config } from "./index.js";
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect(config.dbUrl || "");
+    await mongoose.connect(config.dbUrl || "mongodb://localhost:27017/furniture_db");
     console.log("✅ Connected to Database");
   } catch (error) {
     console.error("❌ MongoDB connection error:", error.message);

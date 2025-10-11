@@ -1,15 +1,23 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
 // Types
-export type UserRole = 'user' | 'seller' | 'buyer';
+export type UserRole = 'user' | 'admin';
 
 export interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
-  address: string;
   role: UserRole;
+}
+
+export interface Admin {
+  id: string;
+  username: string;
+  email: string;
+  isActive: boolean;
+  role: 'admin';
 }
 
 export interface Furniture {
@@ -47,7 +55,9 @@ export interface Order {
 
 interface AppState {
   user: User | null;
+  admin: Admin | null;
   isAuthenticated: boolean;
+  userType: 'user' | 'admin' | null;
   cart: CartItem[];
   wishlist: string[];
   furniture: Furniture[];
@@ -59,7 +69,8 @@ interface AppState {
 }
 
 type AppAction = 
-  | { type: 'LOGIN'; payload: User }
+  | { type: 'USER_LOGIN'; payload: User }
+  | { type: 'ADMIN_LOGIN'; payload: Admin }
   | { type: 'LOGOUT' }
   | { type: 'ADD_TO_CART'; payload: CartItem }
   | { type: 'REMOVE_FROM_CART'; payload: string }
@@ -125,7 +136,9 @@ const sampleFurniture: Furniture[] = [
 
 const initialState: AppState = {
   user: null,
+  admin: null,
   isAuthenticated: false,
+  userType: null,
   cart: [],
   wishlist: [],
   furniture: sampleFurniture,
@@ -138,20 +151,38 @@ const initialState: AppState = {
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
-    case 'LOGIN':
+    case 'USER_LOGIN':
       localStorage.setItem('user', JSON.stringify(action.payload));
+      localStorage.setItem('userType', 'user');
       return {
         ...state,
         user: action.payload,
-        isAuthenticated: true
+        admin: null,
+        isAuthenticated: true,
+        userType: 'user'
+      };
+    
+    case 'ADMIN_LOGIN':
+      localStorage.setItem('admin', JSON.stringify(action.payload));
+      localStorage.setItem('userType', 'admin');
+      return {
+        ...state,
+        user: null,
+        admin: action.payload,
+        isAuthenticated: true,
+        userType: 'admin'
       };
     
     case 'LOGOUT':
       localStorage.removeItem('user');
+      localStorage.removeItem('admin');
+      localStorage.removeItem('userType');
       return {
         ...state,
         user: null,
+        admin: null,
         isAuthenticated: false,
+        userType: null,
         cart: [],
         wishlist: []
       };
@@ -276,10 +307,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Initialize user from localStorage
   React.useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      const user = JSON.parse(savedUser);
-      dispatch({ type: 'LOGIN', payload: user });
+    const userType = localStorage.getItem('userType');
+    if (userType === 'user') {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const user = JSON.parse(savedUser);
+        dispatch({ type: 'USER_LOGIN', payload: user });
+      }
+    } else if (userType === 'admin') {
+      const savedAdmin = localStorage.getItem('admin');
+      if (savedAdmin) {
+        const admin = JSON.parse(savedAdmin);
+        dispatch({ type: 'ADMIN_LOGIN', payload: admin });
+      }
     }
   }, []);
 
