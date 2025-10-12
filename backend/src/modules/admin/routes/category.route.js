@@ -2,31 +2,41 @@ import { Router } from "express";
 import * as controller from "../controllers/category.controller.js";
 import * as validation from "../validation/category.validation.js";
 import validate from "../../../middlewares/validate.js";
-import passport from "passport";
+import { authenticateAdmin } from "../../../middlewares/auth.js";
 
 const categoryRouter = Router();
 
-categoryRouter.post(
-  "/list",
-  passport.authenticate("admin", { session: false }),
-  validate(validation.list),
-  controller.list
+// Get all categories (protected - admin only)
+categoryRouter.get("/", authenticateAdmin, controller.list);
+
+// Get category by ID (protected - admin only)
+categoryRouter.get(
+  "/:id",
+  authenticateAdmin,
+  validate(validation.get),
+  controller.get
 );
+
+// Create new category (protected - admin only)
 categoryRouter.post(
-  "/add",
-  passport.authenticate("admin", { session: false }),
+  "/",
+  authenticateAdmin,
   validate(validation.add),
   controller.add
 );
-categoryRouter.post(
-  "/edit",
-  passport.authenticate("admin", { session: false }),
+
+// Update category (protected - admin only)
+categoryRouter.put(
+  "/:id",
+  authenticateAdmin,
   validate(validation.edit),
   controller.edit
 );
-categoryRouter.post(
-  "/remove",
-  passport.authenticate("admin", { session: false }),
+
+// Delete category (protected - admin only)
+categoryRouter.delete(
+  "/:id",
+  authenticateAdmin,
   validate(validation.remove),
   controller.remove
 );

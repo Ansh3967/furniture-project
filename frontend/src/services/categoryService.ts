@@ -1,4 +1,5 @@
-import api from '../api/axiosInstance';
+import api from "../api/axiosInstance";
+import adminApi from "../api/adminAxiosInstance";
 
 export interface Category {
   _id: string;
@@ -11,33 +12,51 @@ export interface CreateCategoryData {
 }
 
 export const categoryService = {
-  // Get all categories
-  getAllCategories: async (): Promise<Category[]> => {
-    const response = await api.get('/admin/category/list');
+  // User category service (public access)
+  getAllCategories: async (): Promise<{
+    categories: Category[];
+    total: number;
+  }> => {
+    const response = await api.get("/user/category");
     return response.data;
   },
 
-  // Get category by ID
   getCategoryById: async (id: string): Promise<Category> => {
-    const response = await api.get(`/admin/category/${id}`);
+    const response = await api.get(`/user/category/${id}`);
     return response.data;
   },
 
-  // Create new category (admin only)
-  createCategory: async (data: CreateCategoryData): Promise<Category> => {
-    const response = await api.post('/admin/category/add', data);
+  // Admin category service (protected access)
+  adminGetAllCategories: async (): Promise<{
+    categories: Category[];
+    total: number;
+  }> => {
+    const response = await adminApi.get("/admin/categories");
     return response.data;
   },
 
-  // Update category (admin only)
-  updateCategory: async (id: string, data: Partial<CreateCategoryData>): Promise<Category> => {
-    const response = await api.post('/admin/category/edit', { id, ...data });
+  adminGetCategoryById: async (id: string): Promise<Category> => {
+    const response = await adminApi.get(`/admin/categories/${id}`);
     return response.data;
   },
 
-  // Delete category (admin only)
-  deleteCategory: async (id: string): Promise<{ message: string }> => {
-    const response = await api.post('/admin/category/remove', { id });
+  adminCreateCategory: async (
+    data: CreateCategoryData
+  ): Promise<{ message: string; category: Category }> => {
+    const response = await adminApi.post("/admin/categories", data);
+    return response.data;
+  },
+
+  adminUpdateCategory: async (
+    id: string,
+    data: Partial<CreateCategoryData>
+  ): Promise<{ message: string; category: Category }> => {
+    const response = await adminApi.put(`/admin/categories/${id}`, data);
+    return response.data;
+  },
+
+  adminDeleteCategory: async (id: string): Promise<{ message: string }> => {
+    const response = await adminApi.delete(`/admin/categories/${id}`);
     return response.data;
   },
 };

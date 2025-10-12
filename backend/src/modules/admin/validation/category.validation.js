@@ -1,16 +1,30 @@
 import Joi from "joi";
 
 export const add = {
-  name: Joi.string().trim().required(),
+  body: Joi.object({
+    name: Joi.string().trim().required(),
+  }),
 };
 
 export const edit = {
-  id: Joi.string().required(),
-  name: Joi.string().trim().optional(),
+  params: Joi.object({
+    id: Joi.string().hex().length(24).required(),
+  }),
+  body: Joi.object({
+    name: Joi.string().trim().required(),
+  }),
 };
 
 export const list = {};
 
+export const get = {
+  params: Joi.object({
+    id: Joi.string().hex().length(24).required(),
+  }),
+};
+
 export const remove = {
-  id: Joi.string().required(),
+  params: Joi.object({
+    id: Joi.string().hex().length(24).required(),
+  }),
 };

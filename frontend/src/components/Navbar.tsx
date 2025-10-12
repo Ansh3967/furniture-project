@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, ShoppingCart, User, Menu, Heart, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,40 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useApp } from "@/contexts/AppContext";
+import { categoryService } from "@/services/categoryService";
 
 const Navbar = () => {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await categoryService.getAllCategories();
+        const categoryNames = response.categories.map((cat) => cat.name);
+        setCategories(["All", ...categoryNames]);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        // Fallback to default categories
+        setCategories([
+          "All",
+          "Sofa",
+          "Chair",
+          "Table",
+          "Bed",
+          "Desk",
+          "Storage",
+          "Decor",
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,17 +58,6 @@ const Navbar = () => {
     dispatch({ type: "LOGOUT" });
     navigate("/");
   };
-
-  const categories = [
-    "All",
-    "Sofa",
-    "Chair",
-    "Table",
-    "Bed",
-    "Desk",
-    "Storage",
-    "Decor",
-  ];
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">

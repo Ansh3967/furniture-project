@@ -1,103 +1,97 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface Category {
-  _id: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  itemCount: number;
-  createdAt: string;
-}
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Plus, Edit, Trash2, Search, Filter } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { categoryService, Category } from "@/services/categoryService";
 
 const CategoryManagement = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    isActive: true
+    name: "",
+    description: "",
+    isActive: true,
   });
   const { toast } = useToast();
 
   // Sample data - replace with actual API calls
   useEffect(() => {
-    const loadCategories = async () => {
-      setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setCategories([
-          {
-            _id: '1',
-            name: 'Sofas',
-            description: 'Comfortable seating furniture for living rooms',
-            isActive: true,
-            itemCount: 12,
-            createdAt: '2024-01-15'
-          },
-          {
-            _id: '2',
-            name: 'Desks',
-            description: 'Work and study desks for home and office',
-            isActive: true,
-            itemCount: 8,
-            createdAt: '2024-01-14'
-          },
-          {
-            _id: '3',
-            name: 'Chairs',
-            description: 'Ergonomic chairs for comfort and productivity',
-            isActive: true,
-            itemCount: 15,
-            createdAt: '2024-01-13'
-          },
-          {
-            _id: '4',
-            name: 'Tables',
-            description: 'Dining and coffee tables for various spaces',
-            isActive: false,
-            itemCount: 6,
-            createdAt: '2024-01-12'
-          }
-        ]);
-        setLoading(false);
-      }, 1000);
-    };
-
     loadCategories();
   }, []);
 
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await categoryService.adminGetAllCategories();
+      setCategories(response.categories);
+    } catch (error) {
+      console.error("Failed to load categories:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load categories",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddCategory = async () => {
     try {
-      // API call to add category
-      const newCategory = {
-        _id: Date.now().toString(),
-        ...formData,
-        itemCount: 0,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      
-      setCategories([...categories, newCategory]);
+      const response = await categoryService.adminCreateCategory({
+        name: formData.name,
+      });
+
+      setCategories([...categories, response.category]);
       setIsAddDialogOpen(false);
-      setFormData({ name: '', description: '', isActive: true });
-      
+      setFormData({ name: "", description: "", isActive: true });
+
       toast({
         title: "Category Added",
-        description: "New category has been created successfully.",
+        description: response.message,
       });
     } catch (error) {
       toast({
@@ -110,22 +104,28 @@ const CategoryManagement = () => {
 
   const handleEditCategory = async () => {
     if (!editingCategory) return;
-    
+
     try {
-      // API call to update category
-      setCategories(categories.map(cat => 
-        cat._id === editingCategory._id 
-          ? { ...cat, ...formData }
-          : cat
-      ));
-      
+      const response = await categoryService.adminUpdateCategory(
+        editingCategory._id,
+        {
+          name: formData.name,
+        }
+      );
+
+      setCategories(
+        categories.map((cat) =>
+          cat._id === editingCategory._id ? response.category : cat
+        )
+      );
+
       setIsEditDialogOpen(false);
       setEditingCategory(null);
-      setFormData({ name: '', description: '', isActive: true });
-      
+      setFormData({ name: "", description: "", isActive: true });
+
       toast({
         title: "Category Updated",
-        description: "Category has been updated successfully.",
+        description: response.message,
       });
     } catch (error) {
       toast({
@@ -138,9 +138,9 @@ const CategoryManagement = () => {
 
   const handleDeleteCategory = async (categoryId: string) => {
     try {
-      // API call to delete category
-      setCategories(categories.filter(cat => cat._id !== categoryId));
-      
+      await categoryService.adminDeleteCategory(categoryId);
+      setCategories(categories.filter((cat) => cat._id !== categoryId));
+
       toast({
         title: "Category Deleted",
         description: "Category has been deleted successfully.",
@@ -159,14 +159,15 @@ const CategoryManagement = () => {
     setFormData({
       name: category.name,
       description: category.description,
-      isActive: category.isActive
+      isActive: category.isActive,
     });
     setIsEditDialogOpen(true);
   };
 
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCategories = categories.filter(
+    (category) =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      category.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -182,7 +183,9 @@ const CategoryManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Category Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Category Management
+          </h1>
           <p className="text-muted-foreground">
             Manage furniture categories and organize your inventory
           </p>
@@ -207,7 +210,9 @@ const CategoryManagement = () => {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   placeholder="Enter category name"
                 />
               </div>
@@ -216,18 +221,20 @@ const CategoryManagement = () => {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   placeholder="Enter category description"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleAddCategory}>
-                Add Category
-              </Button>
+              <Button onClick={handleAddCategory}>Add Category</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -278,10 +285,13 @@ const CategoryManagement = () => {
               {filteredCategories.map((category) => (
                 <TableRow key={category._id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="max-w-xs truncate">{category.description}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {category.description}
+                  </TableCell>
                   <TableCell>{category.itemCount}</TableCell>
                   <TableCell>
-                    <Badge variant={category.isActive ? "default" : "secondary"}>
+                    <Badge
+                      variant={category.isActive ? "default" : "secondary"}>
                       {category.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
@@ -291,8 +301,7 @@ const CategoryManagement = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => openEditDialog(category)}
-                      >
+                        onClick={() => openEditDialog(category)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <AlertDialog>
@@ -305,16 +314,16 @@ const CategoryManagement = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the category
-                              and remove it from your inventory.
+                              This action cannot be undone. This will
+                              permanently delete the category and remove it from
+                              your inventory.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDeleteCategory(category._id)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
+                              className="bg-red-600 hover:bg-red-700">
                               Delete
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -344,7 +353,9 @@ const CategoryManagement = () => {
               <Input
                 id="edit-name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Enter category name"
               />
             </div>
@@ -353,18 +364,20 @@ const CategoryManagement = () => {
               <Textarea
                 id="edit-description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Enter category description"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleEditCategory}>
-              Update Category
-            </Button>
+            <Button onClick={handleEditCategory}>Update Category</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
