@@ -1,36 +1,109 @@
 import Item from "../../../models/item.model.js";
+import Review from "../../../models/review.model.js";
+import mongoose from "mongoose";
 
-// List all items
+// List all items with filtering and pagination
 export const list = async (req, res) => {
   try {
-    const items = await Item.find();
-    res.json(items);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch items" });
+    const {
+      page = 1,
+      limit = 12,
+      category,
+      availability = "available",
+      saleType,
+      search,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      minPrice,
+      maxPrice,
+      condition,
+      isFeatured,
+    } = req.query;
+
+    const filter = { availability: "available" }; // Only show available items to users
+
+    if (category) filter.category = category;
+    if (saleType) filter.saleType = saleType;
+    if (condition) filter.condition = condition;
+    if (isFeatured !== undefined) filter.isFeatured = isFeatured === "true";
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { tags: { $in: [new RegExp(search, "i")] } },
+      ];
+    }
+
+    // Price filtering
+    if (minPrice || maxPrice) {
+      const priceFilter = {};
+      if (minPrice) priceFilter.$gte = parseFloat(minPrice);
+      if (maxPrice) priceFilter.$lte = parseFloat(maxPrice);
+
+      filter.$or = [{ price: priceFilter }, { rentPrice: priceFilter }];
+    }
+
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+    const items = await Item.find(filter)
+      .populate("category", "name description")
+      .populate("images", "url altText")
+      .sort(sortOptions)
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Item.countDocuments(filter);
+
+    res.json({
+      items,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      total,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-import Review from "../../../models/review.model.js";
-
 export const get = async (req, res) => {
   try {
-    const { id } = req.body;
-    if (!id) {
-      return res.status(200).json({ item: null, reviews: [] });
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid item ID" });
     }
-    const item = await Item.findById(id);
+
+    const item = await Item.findById(id)
+      .populate("category", "name description")
+      .populate("images", "url altText");
+
     if (!item) {
-      return res.status(404).json({ error: "Item not found" });
+      return res.status(404).json({ message: "Item not found" });
     }
+
+    // Only show available items to users
+    if (item.availability !== "available") {
+      return res.status(404).json({ message: "Item not available" });
+    }
+
+    // Increment view count
+    await Item.findByIdAndUpdate(id, { $inc: { viewCount: 1 } });
+
+    // Get reviews for this item
     let reviews = [];
     try {
-      reviews = await Review.find({ itemId: id });
+      reviews = await Review.find({ itemId: id })
+        .populate("user", "firstName lastName")
+        .sort({ createdAt: -1 });
     } catch (reviewErr) {
       reviews = [];
     }
+
     res.json({ item, reviews });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch item" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 

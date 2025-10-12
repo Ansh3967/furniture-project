@@ -2,37 +2,30 @@ import { Router } from "express";
 import * as controller from "../controllers/item.controller.js";
 import * as validation from "../validation/item.validation.js";
 import validate from "../../../middlewares/validate.js";
-import passport from "passport";
+import { authenticateUser } from "../../../middlewares/auth.js";
 
 const itemRouter = Router();
 
+// Public routes (no authentication required for browsing)
+itemRouter.get("/", validate(validation.list), controller.list);
+itemRouter.get("/:id", validate(validation.get), controller.get);
+
+// Protected routes (authentication required for user actions)
 itemRouter.post(
-  "/list",
-  passport.authenticate("user", { session: false }),
-  validate(validation.list),
-  controller.list
-);
-itemRouter.post(
-  "/get",
-  passport.authenticate("user", { session: false }),
-  validate(validation.get),
-  controller.get
-);
-itemRouter.post(
-  "/add",
-  passport.authenticate("user", { session: false }),
+  "/",
+  authenticateUser,
   validate(validation.add),
   controller.add
 );
-itemRouter.post(
-  "/edit",
-  passport.authenticate("user", { session: false }),
+itemRouter.put(
+  "/:id",
+  authenticateUser,
   validate(validation.edit),
   controller.edit
 );
-itemRouter.post(
-  "/remove",
-  passport.authenticate("user", { session: false }),
+itemRouter.delete(
+  "/:id",
+  authenticateUser,
   validate(validation.remove),
   controller.remove
 );

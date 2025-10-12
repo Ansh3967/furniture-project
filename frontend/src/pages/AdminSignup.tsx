@@ -1,33 +1,39 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
-import { useApp } from '@/contexts/AppContext';
-import { authService } from '@/services/authService';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { useApp } from "@/contexts/AppContext";
+import { authService } from "@/services/authService";
 
 const AdminSignup = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    agreeTerms: false
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    agreeTerms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { dispatch } = useApp();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -37,9 +43,9 @@ const AdminSignup = () => {
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
       toast({
-        title: 'Password mismatch',
-        description: 'Passwords do not match. Please try again.',
-        variant: 'destructive',
+        title: "Password mismatch",
+        description: "Passwords do not match. Please try again.",
+        variant: "destructive",
       });
       setIsLoading(false);
       return;
@@ -47,9 +53,9 @@ const AdminSignup = () => {
 
     if (!formData.agreeTerms) {
       toast({
-        title: 'Terms required',
-        description: 'Please agree to the terms and conditions.',
-        variant: 'destructive',
+        title: "Terms required",
+        description: "Please agree to the terms and conditions.",
+        variant: "destructive",
       });
       setIsLoading(false);
       return;
@@ -59,24 +65,26 @@ const AdminSignup = () => {
       const response = await authService.adminRegister({
         username: formData.username,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
 
       toast({
-        title: 'Admin account created successfully!',
+        title: "Admin account created successfully!",
         description: response.message,
       });
 
-      navigate('/login');
+      navigate("/admin/login");
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : 'Failed to create admin account. Please try again.';
-      
+      const errorMessage =
+        error instanceof Error && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Failed to create admin account. Please try again.";
+
       toast({
-        title: 'Signup failed',
+        title: "Signup failed",
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -88,7 +96,9 @@ const AdminSignup = () => {
       <div className="max-w-md w-full space-y-8">
         <Card className="shadow-strong">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-3xl font-bold text-primary">Create Admin Account</CardTitle>
+            <CardTitle className="text-3xl font-bold text-primary">
+              Create Admin Account
+            </CardTitle>
             <CardDescription>
               Join as an admin to manage the furniture shop
             </CardDescription>
@@ -102,7 +112,9 @@ const AdminSignup = () => {
                   type="text"
                   placeholder="Enter your username"
                   value={formData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("username", e.target.value)
+                  }
                   required
                 />
               </div>
@@ -114,7 +126,7 @@ const AdminSignup = () => {
                   type="email"
                   placeholder="Enter your email"
                   value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   required
                 />
               </div>
@@ -124,10 +136,12 @@ const AdminSignup = () => {
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Create a password"
                     value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("password", e.target.value)
+                    }
                     required
                   />
                   <Button
@@ -135,8 +149,7 @@ const AdminSignup = () => {
                     variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
+                    onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
                     ) : (
@@ -151,10 +164,12 @@ const AdminSignup = () => {
                 <div className="relative">
                   <Input
                     id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("confirmPassword", e.target.value)
+                    }
                     required
                   />
                   <Button
@@ -162,8 +177,9 @@ const AdminSignup = () => {
                     variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }>
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
                     ) : (
@@ -177,14 +193,16 @@ const AdminSignup = () => {
                 <Checkbox
                   id="terms"
                   checked={formData.agreeTerms}
-                  onCheckedChange={(checked) => handleInputChange('agreeTerms', !!checked)}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("agreeTerms", !!checked)
+                  }
                 />
                 <Label htmlFor="terms" className="text-sm">
-                  I agree to the{' '}
+                  I agree to the{" "}
                   <Link to="#" className="text-accent hover:underline">
                     Terms & Conditions
-                  </Link>{' '}
-                  and{' '}
+                  </Link>{" "}
+                  and{" "}
                   <Link to="#" className="text-accent hover:underline">
                     Privacy Policy
                   </Link>
@@ -194,15 +212,16 @@ const AdminSignup = () => {
               <Button
                 type="submit"
                 className="w-full bg-gradient-primary hover:opacity-90"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creating Account...' : 'Create Admin Account'}
+                disabled={isLoading}>
+                {isLoading ? "Creating Account..." : "Create Admin Account"}
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">
-                Already have an account?{' '}
-                <Link to="/login" className="text-accent hover:underline font-medium">
-                  Sign in here
+                Already have an account?{" "}
+                <Link
+                  to="/admin/login"
+                  className="text-accent hover:underline font-medium">
+                  Admin Sign in here
                 </Link>
               </div>
             </form>

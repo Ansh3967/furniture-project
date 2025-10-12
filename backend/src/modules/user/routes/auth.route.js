@@ -2,7 +2,7 @@ import { Router } from "express";
 import * as controller from "../controllers/auth.controller.js";
 import * as validation from "../validation/auth.validation.js";
 import validate from "../../../middlewares/validate.js";
-import passport from "passport";
+import { authenticateUser } from "../../../middlewares/auth.js";
 
 const authRouter = Router();
 
@@ -14,17 +14,12 @@ authRouter.post(
 );
 authRouter.post("/login", validate(validation.login), controller.login);
 
-// Protected routes with passport authentication
-authRouter.post(
-  "/profile",
-  passport.authenticate("user", { session: false }),
-  validate(validation.profile),
-  controller.profile
-);
+// Protected routes with user authentication
+authRouter.get("/profile", authenticateUser, controller.profile);
 
-authRouter.post(
-  "/profile/edit",
-  passport.authenticate("user", { session: false }),
+authRouter.put(
+  "/profile",
+  authenticateUser,
   validate(validation.profileEdit),
   controller.profileEdit
 );

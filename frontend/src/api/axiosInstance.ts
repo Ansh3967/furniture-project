@@ -8,7 +8,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add user auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -22,13 +22,20 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle auth errors
+// Response interceptor to handle user auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      // Only clear user tokens and redirect if this is a user API call
+      if (error.config?.url?.startsWith("/user/")) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        // Only redirect if we're not already on the login page
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = "/login";
+        }
+      }
     }
     return Promise.reject(error);
   }

@@ -1,97 +1,65 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { useApp } from '@/contexts/AppContext';
-import { authService } from '@/services/authService';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { useApp } from "@/contexts/AppContext";
+import { authService } from "@/services/authService";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { dispatch } = useApp();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleUserLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       const response = await authService.userLogin({ email, password });
-      localStorage.setItem('token', response.token);
-      
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("user", JSON.stringify(response.user));
+
       const user = {
         id: response.user._id,
         firstName: response.user.firstName,
         lastName: response.user.lastName,
         email: response.user.email,
         phone: response.user.phone,
-        role: 'user' as const
+        role: "user" as const,
       };
 
-      dispatch({ type: 'USER_LOGIN', payload: user });
-      
+      dispatch({ type: "USER_LOGIN", payload: user });
+
       toast({
-        title: 'Login successful!',
+        title: "Login successful!",
         description: `Welcome back, ${user.firstName}!`,
       });
 
-      navigate('/dashboard');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : 'Please enter valid credentials.';
-      
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("User login error:", error);
+      const errorMessage =
+        error.response?.data?.message || "Please enter valid credentials.";
+
       toast({
-        title: 'Login failed',
+        title: "Login failed",
         description: errorMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAdminLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const response = await authService.adminLogin({ email, password });
-      localStorage.setItem('token', response.token);
-      
-      const admin = {
-        id: response.admin._id,
-        username: response.admin.username,
-        email: response.admin.email,
-        isActive: response.admin.isActive,
-        role: 'admin' as const
-      };
-
-      dispatch({ type: 'ADMIN_LOGIN', payload: admin });
-      
-      toast({
-        title: 'Admin login successful!',
-        description: `Welcome back, ${admin.username}!`,
-      });
-
-      navigate('/dashboard');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : 'Please enter valid credentials.';
-      
-      toast({
-        title: 'Login failed',
-        description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -103,13 +71,15 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8">
         <Card className="shadow-strong">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-3xl font-bold text-primary">Welcome Back</CardTitle>
+            <CardTitle className="text-3xl font-bold text-primary">
+              Welcome Back
+            </CardTitle>
             <CardDescription>
               Sign in to your FurnishHome account
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -127,7 +97,7 @@ const Login = () => {
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -138,8 +108,7 @@ const Login = () => {
                     variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
+                    onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
                     ) : (
@@ -149,26 +118,12 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <Button
-                  type="button"
-                  onClick={handleUserLogin}
-                  className="w-full bg-gradient-primary hover:opacity-90"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Signing in...' : 'Sign In as Customer'}
-                </Button>
-
-                <Button
-                  type="button"
-                  onClick={handleAdminLogin}
-                  variant="outline"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Signing in...' : 'Sign In as Admin'}
-                </Button>
-              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-primary hover:opacity-90"
+                disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
 
               <div className="text-center text-sm">
                 <Link to="#" className="text-accent hover:underline">
@@ -177,20 +132,39 @@ const Login = () => {
               </div>
 
               <div className="text-center text-sm text-muted-foreground">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-accent hover:underline font-medium">
+                Don't have an account?{" "}
+                <Link
+                  to="/signup"
+                  className="text-accent hover:underline font-medium">
                   Sign up here
                 </Link>
               </div>
-            </div>
+
+              <div className="text-center text-sm text-muted-foreground">
+                Admin?{" "}
+                <Link
+                  to="/admin/login"
+                  className="text-accent hover:underline font-medium">
+                  Admin Login
+                </Link>
+              </div>
+            </form>
 
             <div className="mt-6 pt-6 border-t border-border">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-3">Demo Credentials</p>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Demo Credentials
+                </p>
                 <div className="text-xs text-muted-foreground space-y-1">
-                  <p><strong>Customer:</strong> user@demo.com / password123</p>
-                  <p><strong>Admin:</strong> admin@demo.com / password123</p>
-                  <p><strong>Test User:</strong> john@test.com / password123</p>
+                  <p>
+                    <strong>Customer:</strong> user@demo.com / password123
+                  </p>
+                  <p>
+                    <strong>Admin:</strong> admin@demo.com / password123
+                  </p>
+                  <p>
+                    <strong>Test User:</strong> john@test.com / password123
+                  </p>
                 </div>
               </div>
             </div>

@@ -9,54 +9,84 @@ const itemSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: false,
+      required: true,
       trim: true,
     },
-    categoryId: {
+    category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
     },
-    furnitureStatus: {
+    availability: {
       type: String,
-      enum: ["in stock", "out of stock"],
+      enum: ["available", "out_of_stock", "discontinued"],
       required: true,
-      default: "in stock",
+      default: "available",
     },
-    // New field: saleType (for sale, rent, or both)
     saleType: {
       type: String,
       enum: ["sale", "rent", "both"],
       required: true,
       default: "sale",
     },
-    buyPrice: {
+    price: {
       type: Number,
-      required: false,
-      default: null,
+      required: function () {
+        return this.saleType === "sale" || this.saleType === "both";
+      },
+      min: 0,
     },
     rentPrice: {
       type: Number,
-      required: false,
-      default: null,
+      required: function () {
+        return this.saleType === "rent" || this.saleType === "both";
+      },
+      min: 0,
     },
     depositPrice: {
       type: Number,
-      required: false,
-      default: null,
+      default: 0,
+      min: 0,
     },
-    // New field: warranty
+    images: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+      },
+    ],
+    specifications: {
+      dimensions: {
+        length: { type: Number },
+        width: { type: Number },
+        height: { type: Number },
+        unit: { type: String, default: "cm" },
+      },
+      weight: {
+        value: { type: Number },
+        unit: { type: String, default: "kg" },
+      },
+      material: { type: String },
+      color: { type: String },
+      brand: { type: String },
+    },
+    features: [String],
     warranty: {
       type: String,
-      required: false,
       trim: true,
-      default: null,
     },
-    mediaId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Media",
-      required: false,
-      default: null,
+    condition: {
+      type: String,
+      enum: ["new", "like_new", "good", "fair"],
+      default: "new",
+    },
+    tags: [String],
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+    viewCount: {
+      type: Number,
+      default: 0,
     },
   },
   {

@@ -2,37 +2,107 @@ import Joi from "joi";
 
 export const add = {
   name: Joi.string().trim().required(),
-  description: Joi.string().trim().allow(null, ""),
-  categoryId: Joi.string().required(),
-  furnitureStatus: Joi.string().valid("in stock", "out of stock").required(),
+  description: Joi.string().trim().required(),
+  category: Joi.string().hex().length(24).required(),
+  availability: Joi.string()
+    .valid("available", "out_of_stock", "discontinued")
+    .default("available"),
   saleType: Joi.string().valid("sale", "rent", "both").required(),
-  buyPrice: Joi.number().allow(null),
-  rentPrice: Joi.number().allow(null),
-  depositPrice: Joi.number().allow(null),
-  warranty: Joi.string().trim().allow(null, ""),
-  mediaId: Joi.string().allow(null),
+  price: Joi.number()
+    .min(0)
+    .when("saleType", {
+      is: Joi.string().valid("sale", "both"),
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    }),
+  rentPrice: Joi.number()
+    .min(0)
+    .when("saleType", {
+      is: Joi.string().valid("rent", "both"),
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    }),
+  depositPrice: Joi.number().min(0).default(0),
+  images: Joi.array().items(Joi.string().hex().length(24)).default([]),
+  specifications: Joi.object({
+    dimensions: Joi.object({
+      length: Joi.number(),
+      width: Joi.number(),
+      height: Joi.number(),
+      unit: Joi.string().default("cm"),
+    }),
+    weight: Joi.object({
+      value: Joi.number(),
+      unit: Joi.string().default("kg"),
+    }),
+    material: Joi.string(),
+    color: Joi.string(),
+    brand: Joi.string(),
+  }),
+  features: Joi.array().items(Joi.string()),
+  warranty: Joi.string().trim(),
+  condition: Joi.string()
+    .valid("new", "like_new", "good", "fair")
+    .default("new"),
+  tags: Joi.array().items(Joi.string()),
+  isFeatured: Joi.boolean().default(false),
 };
 
 export const edit = {
-  id: Joi.string().required(),
   name: Joi.string().trim(),
-  description: Joi.string().trim().allow(null, ""),
-  categoryId: Joi.string(),
-  furnitureStatus: Joi.string().valid("in stock", "out of stock"),
+  description: Joi.string().trim(),
+  category: Joi.string().hex().length(24),
+  availability: Joi.string().valid("available", "out_of_stock", "discontinued"),
   saleType: Joi.string().valid("sale", "rent", "both"),
-  buyPrice: Joi.number().allow(null),
-  rentPrice: Joi.number().allow(null),
-  depositPrice: Joi.number().allow(null),
-  warranty: Joi.string().trim().allow(null, ""),
-  mediaId: Joi.string().allow(null),
+  price: Joi.number().min(0),
+  rentPrice: Joi.number().min(0),
+  depositPrice: Joi.number().min(0),
+  images: Joi.array().items(Joi.string().hex().length(24)),
+  specifications: Joi.object({
+    dimensions: Joi.object({
+      length: Joi.number(),
+      width: Joi.number(),
+      height: Joi.number(),
+      unit: Joi.string(),
+    }),
+    weight: Joi.object({
+      value: Joi.number(),
+      unit: Joi.string(),
+    }),
+    material: Joi.string(),
+    color: Joi.string(),
+    brand: Joi.string(),
+  }),
+  features: Joi.array().items(Joi.string()),
+  warranty: Joi.string().trim(),
+  condition: Joi.string().valid("new", "like_new", "good", "fair"),
+  tags: Joi.array().items(Joi.string()),
+  isFeatured: Joi.boolean(),
 };
 
-export const list = {};
+export const list = {
+  page: Joi.number().integer().min(1).optional(),
+  limit: Joi.number().integer().min(1).max(100).optional(),
+  category: Joi.string().hex().length(24).optional(),
+  availability: Joi.string()
+    .valid("available", "out_of_stock", "discontinued")
+    .optional(),
+  saleType: Joi.string().valid("sale", "rent", "both").optional(),
+  search: Joi.string().optional(),
+  sortBy: Joi.string()
+    .valid("name", "price", "createdAt", "viewCount")
+    .optional(),
+  sortOrder: Joi.string().valid("asc", "desc").optional(),
+};
 
 export const get = {
-  id: Joi.string().required(),
+  id: Joi.string().hex().length(24).required(),
 };
 
 export const remove = {
-  id: Joi.string().required(),
+  id: Joi.string().hex().length(24).required(),
+};
+
+export const toggleFeatured = {
+  id: Joi.string().hex().length(24).required(),
 };

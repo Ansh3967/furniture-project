@@ -61,10 +61,14 @@ export const login = async (req, res) => {
       email: admin.email,
     };
 
-
-    const token = jwt.sign(payload, process.env.JWT_SECRET || "your-super-secret-jwt-key-change-this-in-production", {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      payload,
+      process.env.JWT_SECRET ||
+        "your-super-secret-jwt-key-change-this-in-production",
+      {
+        expiresIn: "1d",
+      }
+    );
 
     res.json({
       token,
@@ -78,14 +82,14 @@ export const login = async (req, res) => {
 // Get Admin Profile
 export const profile = async (req, res) => {
   try {
-    // Check if req.user exists and has an _id property
-    if (!req.user || !req.user._id) {
+    // Check if req.admin exists and has an _id property
+    if (!req.admin || !req.admin._id) {
       return res
         .status(401)
         .json({ message: "Unauthorized: Invalid or missing token" });
     }
 
-    const admin = await Admin.findById(req.user._id).select("-password");
+    const admin = await Admin.findById(req.admin._id).select("-password");
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
@@ -100,7 +104,7 @@ export const profile = async (req, res) => {
 // Edit Admin Profile
 export const profileEdit = async (req, res) => {
   try {
-    const user = req.user;
+    const admin = req.admin;
     const requestData = req.body;
     const updates = {};
     const allowedFields = ["username", "email", "password"];
@@ -114,12 +118,12 @@ export const profileEdit = async (req, res) => {
     if (updates.username) {
       const existingUsername = await Admin.findOne({
         username: updates.username,
-        _id: { $ne: user._id },
+        _id: { $ne: admin._id },
       });
       if (existingUsername) {
         return res
           .status(400)
-          .json({ message: "Username is already taken by another user." });
+          .json({ message: "Username is already taken by another admin." });
       }
     }
 
@@ -127,12 +131,12 @@ export const profileEdit = async (req, res) => {
     if (updates.email) {
       const existingEmail = await Admin.findOne({
         email: updates.email,
-        _id: { $ne: user._id },
+        _id: { $ne: admin._id },
       });
       if (existingEmail) {
         return res
           .status(400)
-          .json({ message: "Email is already taken by another user." });
+          .json({ message: "Email is already taken by another admin." });
       }
     }
 
@@ -141,17 +145,17 @@ export const profileEdit = async (req, res) => {
       updates.password = await bcrypt.hash(updates.password, 10);
     }
 
-    const admin = await Admin.findByIdAndUpdate(
-      user._id,
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      admin._id,
       { $set: updates },
       { new: true, runValidators: true }
     ).select("-password");
 
-    if (!admin) {
+    if (!updatedAdmin) {
       return res.status(404).json({ message: "Admin not found" });
     }
 
-    res.json({ message: "Profile updated successfully", admin });
+    res.json({ message: "Profile updated successfully", admin: updatedAdmin });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }

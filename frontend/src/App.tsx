@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
 import Navbar from "@/components/Navbar";
+import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import Index from "./pages/Index";
 import FurnitureListing from "./pages/FurnitureListing";
 import FurnitureDetail from "./pages/FurnitureDetail";
@@ -12,6 +13,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import UserSignup from "./pages/UserSignup";
 import AdminSignup from "./pages/AdminSignup";
+import AdminLogin from "./pages/AdminLogin";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import About from "./pages/about";
@@ -58,9 +60,16 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/orders" element={<Orders />} />
-              
+
               {/* Admin Routes */}
-              <Route path="/admin" element={<AdminLayout />}>
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedAdminRoute>
+                    <AdminLayout />
+                  </ProtectedAdminRoute>
+                }>
                 <Route index element={<AdminDashboard />} />
                 <Route path="categories" element={<CategoryManagement />} />
                 <Route path="items" element={<ItemManagement />} />
@@ -70,7 +79,7 @@ const App = () => (
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
-              
+
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

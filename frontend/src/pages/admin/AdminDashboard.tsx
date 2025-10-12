@@ -1,109 +1,138 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  BarChart3, 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  TrendingUp, 
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  BarChart3,
+  Users,
+  Package,
+  ShoppingCart,
+  TrendingUp,
   DollarSign,
   Eye,
   Star,
   Calendar,
-  AlertCircle
-} from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
+  AlertCircle,
+} from "lucide-react";
+import { adminService } from "@/services/adminService";
+import { useToast } from "@/hooks/use-toast";
 
 interface DashboardStats {
-  totalUsers: number;
   totalItems: number;
+  availableItems: number;
+  outOfStockItems: number;
+  featuredItems: number;
   totalOrders: number;
+  pendingOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
   totalRevenue: number;
   recentOrders: any[];
-  topItems: any[];
-  lowStockItems: any[];
+  topViewedItems: any[];
+  itemsByType: any[];
+  itemsByCategory: any[];
 }
 
 const AdminDashboard = () => {
-  const { state } = useApp();
   const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 0,
     totalItems: 0,
+    availableItems: 0,
+    outOfStockItems: 0,
+    featuredItems: 0,
     totalOrders: 0,
+    pendingOrders: 0,
+    completedOrders: 0,
+    cancelledOrders: 0,
     totalRevenue: 0,
     recentOrders: [],
-    topItems: [],
-    lowStockItems: []
+    topViewedItems: [],
+    itemsByType: [],
+    itemsByCategory: [],
   });
 
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate loading dashboard data
     const loadDashboardData = async () => {
-      setLoading(true);
-      // In a real app, you'd fetch this from your API
-      setTimeout(() => {
+      try {
+        setLoading(true);
+
+        // Fetch item statistics
+        const itemStats = await adminService.getItemStats();
+
+        // Fetch order statistics
+        const orderStats = await adminService.getOrderStats();
+
+        // Fetch recent orders
+        const recentOrdersData = await adminService.getOrders({ limit: 5 });
+
         setStats({
-          totalUsers: 1247,
-          totalItems: 89,
-          totalOrders: 342,
-          totalRevenue: 45678,
-          recentOrders: [
-            { id: '1', customer: 'John Doe', amount: 299, status: 'completed', date: '2024-01-15' },
-            { id: '2', customer: 'Jane Smith', amount: 599, status: 'pending', date: '2024-01-15' },
-            { id: '3', customer: 'Bob Johnson', amount: 1299, status: 'completed', date: '2024-01-14' }
-          ],
-          topItems: [
-            { name: 'Premium Leather Sofa', sales: 24, revenue: 59976 },
-            { name: 'Walnut Executive Desk', sales: 18, revenue: 23382 },
-            { name: 'Ergonomic Office Chair', sales: 32, revenue: 19168 }
-          ],
-          lowStockItems: [
-            { name: 'Modern Coffee Table', stock: 2 },
-            { name: 'Office Bookshelf', stock: 1 },
-            { name: 'Dining Chair Set', stock: 3 }
-          ]
+          totalItems: itemStats.totalItems,
+          availableItems: itemStats.availableItems,
+          outOfStockItems: itemStats.outOfStockItems,
+          featuredItems: itemStats.featuredItems,
+          totalOrders: orderStats.totalOrders,
+          pendingOrders: orderStats.pendingOrders,
+          completedOrders: orderStats.completedOrders,
+          cancelledOrders: orderStats.cancelledOrders,
+          totalRevenue: orderStats.totalRevenue,
+          recentOrders: recentOrdersData.orders || [],
+          topViewedItems: itemStats.topViewedItems || [],
+          itemsByType: itemStats.itemsByType || [],
+          itemsByCategory: itemStats.itemsByCategory || [],
         });
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load dashboard data",
+          variant: "destructive",
+        });
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
     loadDashboardData();
-  }, []);
+  }, [toast]);
 
   const statCards = [
     {
-      title: 'Total Users',
-      value: stats.totalUsers.toLocaleString(),
-      icon: Users,
-      description: '+12% from last month',
-      trend: 'up'
-    },
-    {
-      title: 'Total Items',
+      title: "Total Items",
       value: stats.totalItems.toLocaleString(),
       icon: Package,
-      description: '+5 new items this week',
-      trend: 'up'
+      description: `${stats.availableItems} available`,
+      trend: "up",
     },
     {
-      title: 'Total Orders',
+      title: "Total Orders",
       value: stats.totalOrders.toLocaleString(),
       icon: ShoppingCart,
-      description: '+8% from last month',
-      trend: 'up'
+      description: `${stats.pendingOrders} pending`,
+      trend: "up",
     },
     {
-      title: 'Total Revenue',
+      title: "Total Revenue",
       value: `$${stats.totalRevenue.toLocaleString()}`,
       icon: DollarSign,
-      description: '+15% from last month',
-      trend: 'up'
-    }
+      description: `${stats.completedOrders} completed`,
+      trend: "up",
+    },
+    {
+      title: "Featured Items",
+      value: stats.featuredItems.toLocaleString(),
+      icon: Star,
+      description: `${stats.outOfStockItems} out of stock`,
+      trend: "up",
+    },
   ];
 
   if (loading) {
@@ -121,7 +150,8 @@ const AdminDashboard = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back, {state.admin?.username || 'Admin'}! Here's what's happening with your store.
+            Welcome back, Admin! Here's what's happening with your furniture
+            store.
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -171,43 +201,72 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {stats.recentOrders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">{order.customer}</p>
-                        <p className="text-xs text-muted-foreground">{order.date}</p>
+                  {stats.recentOrders.length > 0 ? (
+                    stats.recentOrders.map((order) => (
+                      <div
+                        key={order._id}
+                        className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {order.user?.firstName} {order.user?.lastName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium">
+                            ${order.totalAmount}
+                          </span>
+                          <Badge
+                            variant={
+                              order.status === "completed"
+                                ? "default"
+                                : "secondary"
+                            }>
+                            {order.status}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">${order.amount}</span>
-                        <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
-                          {order.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No recent orders
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Top Selling Items */}
+            {/* Top Viewed Items */}
             <Card>
               <CardHeader>
-                <CardTitle>Top Selling Items</CardTitle>
-                <CardDescription>Best performing products</CardDescription>
+                <CardTitle>Top Viewed Items</CardTitle>
+                <CardDescription>Most popular products</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {stats.topItems.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{item.sales} sales</p>
+                  {stats.topViewedItems.length > 0 ? (
+                    stats.topViewedItems.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.viewCount} views
+                          </p>
+                        </div>
+                        <div className="text-sm font-medium">
+                          {item.category?.name || "Uncategorized"}
+                        </div>
                       </div>
-                      <div className="text-sm font-medium">
-                        ${item.revenue.toLocaleString()}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No data available
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -218,29 +277,50 @@ const AdminDashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle>Order Management</CardTitle>
-              <CardDescription>Manage and track customer orders</CardDescription>
+              <CardDescription>
+                Manage and track customer orders
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {stats.recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="space-y-1">
-                        <p className="font-medium">{order.customer}</p>
-                        <p className="text-sm text-muted-foreground">Order #{order.id}</p>
+                {stats.recentOrders.length > 0 ? (
+                  stats.recentOrders.map((order) => (
+                    <div
+                      key={order._id}
+                      className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="space-y-1">
+                          <p className="font-medium">
+                            {order.user?.firstName} {order.user?.lastName}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Order #{order._id.slice(-8)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <span className="font-medium">
+                          ${order.totalAmount}
+                        </span>
+                        <Badge
+                          variant={
+                            order.status === "completed"
+                              ? "default"
+                              : "secondary"
+                          }>
+                          {order.status}
+                        </Badge>
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4">
-                      <span className="font-medium">${order.amount}</span>
-                      <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
-                        {order.status}
-                      </Badge>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No orders found
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -252,23 +332,26 @@ const AdminDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <AlertCircle className="h-5 w-5 mr-2 text-orange-500" />
-                  Low Stock Alert
+                  Out of Stock Alert
                 </CardTitle>
                 <CardDescription>Items that need restocking</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {stats.lowStockItems.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-orange-600">Only {item.stock} left</p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Restock
-                      </Button>
+                  {stats.outOfStockItems > 0 ? (
+                    <div className="p-3 bg-orange-50 rounded-lg">
+                      <p className="font-medium text-orange-800">
+                        {stats.outOfStockItems} items are out of stock
+                      </p>
+                      <p className="text-sm text-orange-600">
+                        Check the Items management page for details
+                      </p>
                     </div>
-                  ))}
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      All items are in stock
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -285,12 +368,22 @@ const AdminDashboard = () => {
                     <span className="font-medium">{stats.totalItems}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Low Stock Items</span>
-                    <span className="font-medium text-orange-600">{stats.lowStockItems.length}</span>
+                    <span>Available Items</span>
+                    <span className="font-medium text-green-600">
+                      {stats.availableItems}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Out of Stock</span>
-                    <span className="font-medium text-red-600">0</span>
+                    <span className="font-medium text-red-600">
+                      {stats.outOfStockItems}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Featured Items</span>
+                    <span className="font-medium text-blue-600">
+                      {stats.featuredItems}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -309,7 +402,9 @@ const AdminDashboard = () => {
                 <div className="text-center">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4" />
                   <p>Analytics chart would go here</p>
-                  <p className="text-sm">Integration with chart library needed</p>
+                  <p className="text-sm">
+                    Integration with chart library needed
+                  </p>
                 </div>
               </div>
             </CardContent>

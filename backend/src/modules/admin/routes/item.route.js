@@ -2,39 +2,32 @@ import { Router } from "express";
 import * as controller from "../controllers/item.controller.js";
 import * as validation from "../validation/item.validation.js";
 import validate from "../../../middlewares/validate.js";
-import passport from "passport";
 
 const itemRouter = Router();
 
-itemRouter.post(
-  "/list",
-  passport.authenticate("admin", { session: false }),
-  validate(validation.list),
-  controller.list
-);
-itemRouter.post(
-  "/get",
-  passport.authenticate("admin", { session: false }),
-  validate(validation.get),
-  controller.get
-);
-itemRouter.post(
-  "/add",
-  passport.authenticate("admin", { session: false }),
-  validate(validation.add),
-  controller.add
-);
-itemRouter.post(
-  "/edit",
-  passport.authenticate("admin", { session: false }),
-  validate(validation.edit),
-  controller.edit
-);
-itemRouter.post(
-  "/remove",
-  passport.authenticate("admin", { session: false }),
-  validate(validation.remove),
-  controller.remove
+// Get all items with filtering and pagination
+itemRouter.get("/", validate(validation.list), controller.list);
+
+// Get item statistics
+itemRouter.get("/stats", controller.getStats);
+
+// Get single item by ID
+itemRouter.get("/:id", validate(validation.get), controller.get);
+
+// Create new item
+itemRouter.post("/", validate(validation.add), controller.add);
+
+// Update item
+itemRouter.put("/:id", validate(validation.edit), controller.edit);
+
+// Delete item
+itemRouter.delete("/:id", validate(validation.remove), controller.remove);
+
+// Toggle featured status
+itemRouter.patch(
+  "/:id/featured",
+  validate(validation.toggleFeatured),
+  controller.toggleFeatured
 );
 
 export default itemRouter;
