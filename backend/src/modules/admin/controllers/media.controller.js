@@ -26,13 +26,17 @@ export const uploadMedia = async (req, res) => {
           return null;
         }
 
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
         const extension = path.extname(file.originalname);
-        const newFilename = path.basename(file.originalname, extension) + '-' + uniqueSuffix + extension;
-        const newPath = path.join('uploads', newFilename);
+        const newFilename =
+          path.basename(file.originalname, extension) +
+          "-" +
+          uniqueSuffix +
+          extension;
+        const newPath = path.join("uploads", newFilename);
 
-        if (!fs.existsSync('uploads')) {
-          fs.mkdirSync('uploads', { recursive: true });
+        if (!fs.existsSync("uploads")) {
+          fs.mkdirSync("uploads", { recursive: true });
         }
 
         fs.renameSync(file.path, newPath);
@@ -65,6 +69,8 @@ export const uploadMedia = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "An error occurred while processing files." });
+    return res
+      .status(500)
+      .json({ error: "An error occurred while processing files." });
   }
 };
