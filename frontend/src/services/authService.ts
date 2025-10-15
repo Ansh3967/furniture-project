@@ -12,6 +12,7 @@ export interface UserRegisterData {
   email: string;
   password: string;
   phone: string;
+  address?: string;
 }
 
 export interface User {
@@ -20,6 +21,7 @@ export interface User {
   lastName: string;
   email: string;
   phone: string;
+  address?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -90,7 +92,7 @@ export const authService = {
 
   updateUserProfile: async (data: Partial<UserRegisterData>): Promise<User> => {
     const response = await api.put("/user/auth/profile", data);
-    return response.data;
+    return response.data.user;
   },
 
   // Admin authentication - these will be handled by adminService

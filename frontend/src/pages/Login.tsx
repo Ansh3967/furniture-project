@@ -75,7 +75,7 @@ const Login = () => {
               Welcome Back
             </CardTitle>
             <CardDescription>
-              Sign in to your FurnishHome account
+              Login to your FurnishHome account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -122,7 +122,7 @@ const Login = () => {
                 type="submit"
                 className="w-full bg-gradient-primary hover:opacity-90"
                 disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Logging in..." : "Login"}
               </Button>
 
               <div className="text-center text-sm">
@@ -136,7 +136,7 @@ const Login = () => {
                 <Link
                   to="/signup"
                   className="text-accent hover:underline font-medium">
-                  Sign up here
+                  Register here
                 </Link>
               </div>
 

@@ -10,8 +10,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Search, Filter, Eye, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Filter, Eye, Image as ImageIcon, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { adminService } from '@/services/adminService';
+import { categoryService, Category } from '@/services/categoryService';
 
 interface Item {
   _id: string;
@@ -31,6 +33,7 @@ interface Item {
 
 const ItemManagement = () => {
   const [items, setItems] = useState<Item[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -45,51 +48,95 @@ const ItemManagement = () => {
     rentPrice: 0,
     deposit: 0,
     type: 'sell' as 'sell' | 'rent' | 'both',
-    availability: true
+    availability: true,
+    images: [] as File[]
   });
   const { toast } = useToast();
 
-  const categories = ['Sofas', 'Desks', 'Chairs', 'Tables', 'Storage'];
-
   // Load items from API
   useEffect(() => {
-    const loadItems = async () => {
+    const loadData = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual API call
-        // const response = await adminService.getItems();
-        // setItems(response.items);
+        // Load categories first
+        console.log('Loading categories...');
+        const categoriesResponse = await categoryService.adminGetAllCategories();
+        console.log('Categories loaded:', categoriesResponse);
+        setCategories(categoriesResponse.categories);
         
-        // For now, show empty state
-        setItems([]);
+        // Load items
+        const response = await adminService.getItems();
+        setItems(response.items || []);
       } catch (error) {
-        console.error('Failed to load items:', error);
+        console.error('Failed to load data:', error);
         toast({
           title: "Error",
-          description: "Failed to load items. Please try again.",
+          description: "Failed to load data. Please try again.",
           variant: "destructive",
         });
+        // Show empty state on error
+        setItems([]);
+        setCategories([]);
       } finally {
         setLoading(false);
       }
     };
 
-    loadItems();
-  }, []);
+    loadData();
+  }, [toast]);
 
   const handleAddItem = async () => {
     try {
+      // Validate required fields
+      if (!formData.title || !formData.description || !formData.category) {
+        toast({
+          title: "Validation Error",
+          description: "Please fill in all required fields (Title, Description, Category).",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create item data object
+      const itemData = {
+        name: formData.title, // Backend expects 'name' not 'title'
+        description: formData.description,
+        category: formData.category, // This should be a category ID
+        availability: formData.availability ? 'available' : 'out_of_stock',
+        saleType: formData.type === 'sell' ? 'sale' : formData.type === 'rent' ? 'rent' : 'both',
+        price: formData.price || undefined,
+        rentPrice: formData.rentPrice || undefined,
+        depositPrice: formData.deposit || 0,
+        condition: 'new',
+        isFeatured: false,
+        viewCount: 0
+      };
+
+      console.log('Creating item with data:', itemData);
+      console.log('Available categories:', categories);
+
       // API call to add item
-      const newItem = {
-        _id: Date.now().toString(),
-        ...formData,
-        images: ['/placeholder.svg'],
+      const response = await adminService.createItem(itemData);
+      const newItem = response.item;
+      
+      // Transform the response to match frontend structure
+      const transformedItem = {
+        _id: newItem._id,
+        title: newItem.name,
+        description: newItem.description,
+        category: newItem.category?.name || formData.category,
+        price: newItem.price || 0,
+        rentPrice: newItem.rentPrice || 0,
+        deposit: newItem.depositPrice || 0,
+        type: newItem.saleType === 'sale' ? 'sell' : newItem.saleType === 'rent' ? 'rent' : 'both',
+        availability: newItem.availability === 'available',
+        images: newItem.images || ['/placeholder.svg'],
         rating: 0,
         reviewCount: 0,
-        createdAt: new Date().toISOString().split('T')[0]
+        createdAt: newItem.createdAt
       };
       
-      setItems([...items, newItem]);
+      setItems([...items, transformedItem]);
       setIsAddDialogOpen(false);
       setFormData({
         title: '',
@@ -99,17 +146,31 @@ const ItemManagement = () => {
         rentPrice: 0,
         deposit: 0,
         type: 'sell',
-        availability: true
+        availability: true,
+        images: []
       });
       
       toast({
         title: "Item Added",
         description: "New furniture item has been created successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Add item error:', error);
+      console.error('Error response:', error.response?.data);
+      
+      let errorMessage = "Failed to add item. Please try again.";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        errorMessage = error.response.data.errors.join(', ');
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to add item. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -119,11 +180,51 @@ const ItemManagement = () => {
     if (!editingItem) return;
     
     try {
+      // Validate required fields
+      if (!formData.title || !formData.description || !formData.category) {
+        toast({
+          title: "Validation Error",
+          description: "Please fill in all required fields (Title, Description, Category).",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create item data object
+      const itemData = {
+        name: formData.title, // Backend expects 'name' not 'title'
+        description: formData.description,
+        category: formData.category, // This should be a category ID
+        availability: formData.availability ? 'available' : 'out_of_stock',
+        saleType: formData.type === 'sell' ? 'sale' : formData.type === 'rent' ? 'rent' : 'both',
+        price: formData.price || undefined,
+        rentPrice: formData.rentPrice || undefined,
+        depositPrice: formData.deposit || 0
+      };
+
       // API call to update item
+      const response = await adminService.updateItem(editingItem._id, itemData);
+      const updatedItem = response.item;
+      
+      // Transform the response to match frontend structure
+      const transformedItem = {
+        _id: updatedItem._id,
+        title: updatedItem.name,
+        description: updatedItem.description,
+        category: updatedItem.category?.name || formData.category,
+        price: updatedItem.price || 0,
+        rentPrice: updatedItem.rentPrice || 0,
+        deposit: updatedItem.depositPrice || 0,
+        type: updatedItem.saleType === 'sale' ? 'sell' : updatedItem.saleType === 'rent' ? 'rent' : 'both',
+        availability: updatedItem.availability === 'available',
+        images: updatedItem.images || editingItem.images,
+        rating: editingItem.rating,
+        reviewCount: editingItem.reviewCount,
+        createdAt: updatedItem.createdAt
+      };
+      
       setItems(items.map(item => 
-        item._id === editingItem._id 
-          ? { ...item, ...formData }
-          : item
+        item._id === editingItem._id ? transformedItem : item
       ));
       
       setIsEditDialogOpen(false);
@@ -136,17 +237,20 @@ const ItemManagement = () => {
         rentPrice: 0,
         deposit: 0,
         type: 'sell',
-        availability: true
+        availability: true,
+        images: []
       });
       
       toast({
         title: "Item Updated",
         description: "Furniture item has been updated successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Edit item error:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to update item. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to update item. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -155,6 +259,7 @@ const ItemManagement = () => {
   const handleDeleteItem = async (itemId: string) => {
     try {
       // API call to delete item
+      await adminService.deleteItem(itemId);
       setItems(items.filter(item => item._id !== itemId));
       
       toast({
@@ -170,6 +275,24 @@ const ItemManagement = () => {
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...newFiles]
+      }));
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
   const openEditDialog = (item: Item) => {
     setEditingItem(item);
     setFormData({
@@ -180,7 +303,8 @@ const ItemManagement = () => {
       rentPrice: item.rentPrice || 0,
       deposit: item.deposit || 0,
       type: item.type,
-      availability: item.availability
+      availability: item.availability,
+      images: []
     });
     setIsEditDialogOpen(true);
   };
@@ -217,14 +341,15 @@ const ItemManagement = () => {
               Add Item
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>Add New Item</DialogTitle>
               <DialogDescription>
                 Create a new furniture item for your inventory.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="flex-1 overflow-y-auto pr-2">
+              <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="title">Item Title</Label>
@@ -243,8 +368,8 @@ const ItemManagement = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
+                        <SelectItem key={category._id} value={category._id}>
+                          {category.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -313,8 +438,59 @@ const ItemManagement = () => {
                 />
                 <Label htmlFor="availability">Available for purchase/rent</Label>
               </div>
+              
+              {/* Image Upload Section */}
+              <div>
+                <Label htmlFor="images">Item Images</Label>
+                <div className="mt-2">
+                  <Input
+                    id="images"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Upload multiple images for the item. Supported formats: JPG, PNG, GIF. Max size: 10MB per file.
+                  </p>
+                </div>
+                
+                {/* Preview uploaded images */}
+                {formData.images.length > 0 && (
+                  <div className="mt-4">
+                    <Label>Preview Images</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                      {formData.images.map((file, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImage(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-1 truncate">
+                            {file.name}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex-shrink-0">
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
               </Button>
@@ -346,8 +522,8 @@ const ItemManagement = () => {
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                  <SelectItem key={category._id} value={category._id}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -472,14 +648,15 @@ const ItemManagement = () => {
 
       {/* Edit Item Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Edit Item</DialogTitle>
             <DialogDescription>
               Update the item information.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto pr-2">
+            <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="edit-title">Item Title</Label>
@@ -498,8 +675,8 @@ const ItemManagement = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
+                      <SelectItem key={category._id} value={category._id}>
+                        {category.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -568,8 +745,59 @@ const ItemManagement = () => {
               />
               <Label htmlFor="edit-availability">Available for purchase/rent</Label>
             </div>
+            
+            {/* Image Upload Section for Edit */}
+            <div>
+              <Label htmlFor="edit-images">Update Item Images</Label>
+              <div className="mt-2">
+                <Input
+                  id="edit-images"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="cursor-pointer"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Upload new images to replace existing ones. Supported formats: JPG, PNG, GIF. Max size: 10MB per file.
+                </p>
+              </div>
+              
+              {/* Preview uploaded images for edit */}
+              {formData.images.length > 0 && (
+                <div className="mt-4">
+                  <Label>New Images Preview</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                    {formData.images.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-1 truncate">
+                          {file.name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0">
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Cancel
             </Button>

@@ -1,12 +1,91 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useApp } from '@/contexts/AppContext';
+import { authService } from '@/services/authService';
+import { toast } from 'sonner';
+
+interface ProfileFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+}
 
 const Profile = () => {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<ProfileFormData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Load user data when component mounts
+  useEffect(() => {
+    if (state.user) {
+      setFormData({
+        firstName: state.user.firstName || '',
+        lastName: state.user.lastName || '',
+        email: state.user.email || '',
+        phone: state.user.phone || '',
+        address: state.user.address || ''
+      });
+    }
+  }, [state.user]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      const updatedUser = await authService.updateUserProfile(formData);
+      
+      // Update the user in context
+      dispatch({ 
+        type: 'USER_LOGIN', 
+        payload: {
+          ...updatedUser,
+          role: 'user'
+        }
+      });
+      
+      toast.success('Profile updated successfully!');
+      setIsEditing(false);
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // Reset form data to original user data
+    if (state.user) {
+      setFormData({
+        firstName: state.user.firstName || '',
+        lastName: state.user.lastName || '',
+        email: state.user.email || '',
+        phone: state.user.phone || '',
+        address: state.user.address || ''
+      });
+    }
+    setIsEditing(false);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -20,27 +99,84 @@ const Profile = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Name</Label>
-                <Input value={state.user?.name || ''} readOnly />
+                <Label htmlFor="firstName">First Name</Label>
+                <Input 
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName} 
+                  onChange={handleInputChange}
+                  readOnly={!isEditing}
+                />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
-                <Input value={state.user?.email || ''} readOnly />
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input 
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName} 
+                  onChange={handleInputChange}
+                  readOnly={!isEditing}
+                />
               </div>
               <div className="space-y-2">
-                <Label>Phone</Label>
-                <Input value={state.user?.phone || ''} readOnly />
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email} 
+                  onChange={handleInputChange}
+                  readOnly={!isEditing}
+                />
               </div>
               <div className="space-y-2">
-                <Label>Role</Label>
-                <Input value={state.user?.role || ''} readOnly className="capitalize" />
+                <Label htmlFor="phone">Phone</Label>
+                <Input 
+                  id="phone"
+                  name="phone"
+                  value={formData.phone} 
+                  onChange={handleInputChange}
+                  readOnly={!isEditing}
+                />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Address</Label>
-              <Input value={state.user?.address || ''} readOnly />
+              <Label htmlFor="address">Address</Label>
+              <Textarea 
+                id="address"
+                name="address"
+                value={formData.address} 
+                onChange={handleInputChange}
+                readOnly={!isEditing}
+                rows={3}
+                placeholder="Enter your address..."
+              />
             </div>
-            <Button>Edit Profile</Button>
+            
+            <div className="flex gap-2 pt-4">
+              {!isEditing ? (
+                <Button onClick={() => setIsEditing(true)}>
+                  Edit Profile
+                </Button>
+              ) : (
+                <>
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={loading}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {loading ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCancel}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

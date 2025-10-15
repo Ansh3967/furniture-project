@@ -30,6 +30,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useApp } from "@/contexts/AppContext";
 import { categoryService } from "@/services/categoryService";
+import { itemService, Item } from "@/services/itemService";
 import sofaImage from "@/assets/sofa-premium.jpg";
 import deskImage from "@/assets/desk-walnut.jpg";
 import chairImage from "@/assets/chair-office.jpg";
@@ -40,16 +41,22 @@ const FurnitureListing = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("newest");
   const [categories, setCategories] = useState<string[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const response = await categoryService.getAllCategories();
-        const categoryNames = response.categories.map((cat) => cat.name);
+        // Fetch categories
+        const categoriesResponse = await categoryService.getCategories();
+        const categoryNames = categoriesResponse.map((cat) => cat.name);
         setCategories(["All", ...categoryNames]);
+
+        // Fetch items
+        const itemsResponse = await itemService.getItems();
+        setItems(itemsResponse.items);
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        console.error("Failed to fetch data:", error);
         // Fallback to default categories
         setCategories([
           "All",
@@ -61,29 +68,28 @@ const FurnitureListing = () => {
           "Storage",
           "Decor",
         ]);
+        setItems([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCategories();
+    fetchData();
   }, []);
   const [localPriceRange, setLocalPriceRange] = useState(state.priceRange);
 
   // Get furniture with images
   const furnitureWithImages = useMemo(() => {
-    return state.furniture.map((item) => ({
+    return items.map((item) => ({
       ...item,
-      images:
-        item.id === "1"
-          ? [sofaImage]
-          : item.id === "2"
-          ? [deskImage]
-          : item.id === "3"
-          ? [chairImage]
-          : ["/placeholder.svg"],
+      id: item._id,
+      title: item.name,
+      type: item.saleType,
+      price: item.price || 0,
+      rentPrice: item.rentPrice || 0,
+      images: item.images && item.images.length > 0 ? item.images : ["/placeholder.svg"],
     }));
-  }, [state.furniture]);
+  }, [items]);
 
   // Filter and sort furniture
   const filteredFurniture = useMemo(() => {
@@ -102,7 +108,7 @@ const FurnitureListing = () => {
       // Category filter
       if (
         state.selectedCategory !== "all" &&
-        item.category.toLowerCase() !== state.selectedCategory.toLowerCase()
+        item.category?.name?.toLowerCase() !== state.selectedCategory.toLowerCase()
       ) {
         return false;
       }

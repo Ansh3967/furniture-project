@@ -221,7 +221,7 @@ const AdminSignup = () => {
                 <Link
                   to="/admin/login"
                   className="text-accent hover:underline font-medium">
-                  Admin Sign in here
+                  Admin Login here
                 </Link>
               </div>
             </form>

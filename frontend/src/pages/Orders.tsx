@@ -1,13 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, Calendar, MapPin, Phone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
+import { orderService } from '@/services/orderService';
 
 const Orders = () => {
   const { state } = useApp();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample Indian orders data
+  // Load user orders from API
+  useEffect(() => {
+    const loadOrders = async () => {
+      setLoading(true);
+      try {
+        const response = await orderService.getUserOrders();
+        setOrders(response.orders || []);
+      } catch (error) {
+        console.error('Failed to load orders:', error);
+        // Fallback to sample data on error
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, []);
+
+  // Sample Indian orders data for fallback
   const sampleOrders = [
     {
       id: 'ORD-2024-001',
@@ -86,7 +108,7 @@ const Orders = () => {
     }
   ];
 
-  const orders = state.orders.length > 0 ? state.orders : sampleOrders;
+  const displayOrders = orders.length > 0 ? orders : sampleOrders;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -100,7 +122,11 @@ const Orders = () => {
           </p>
         </div>
         
-        {orders.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          </div>
+        ) : displayOrders.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">No orders yet</h2>
@@ -108,7 +134,7 @@ const Orders = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {orders.map((order) => (
+            {displayOrders.map((order) => (
               <Card key={order.id} className="hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
                   <div className="flex justify-between items-center">

@@ -1,18 +1,48 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, ShoppingCart, Calendar, Shield, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { categoryService, Category } from '@/services/categoryService';
+import { itemService, Item } from '@/services/itemService';
 import heroLivingRoom from '@/assets/hero-living-room.jpg';
 import heroOffice from '@/assets/hero-office.jpg';
 
 const Index = () => {
-  const featuredCategories = [
-    { name: 'Living Room', count: '120+ items', color: 'bg-gradient-to-br from-sage to-sage/80' },
-    { name: 'Office', count: '85+ items', color: 'bg-gradient-to-br from-walnut to-walnut/80' },
-    { name: 'Bedroom', count: '95+ items', color: 'bg-gradient-to-br from-terracotta to-terracotta/80' },
-    { name: 'Storage', count: '60+ items', color: 'bg-gradient-to-br from-charcoal to-charcoal/80' }
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [featuredItems, setFeaturedItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Load categories
+        const categoriesResponse = await categoryService.getCategories();
+        setCategories(categoriesResponse);
+
+        // Load featured items
+        const featuredResponse = await itemService.getFeaturedItems(8);
+        setFeaturedItems(featuredResponse);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const categoryColors = [
+    'bg-gradient-to-br from-sage to-sage/80',
+    'bg-gradient-to-br from-walnut to-walnut/80',
+    'bg-gradient-to-br from-terracotta to-terracotta/80',
+    'bg-gradient-to-br from-charcoal to-charcoal/80',
+    'bg-gradient-to-br from-blue-500 to-blue-600',
+    'bg-gradient-to-br from-green-500 to-green-600',
+    'bg-gradient-to-br from-purple-500 to-purple-600',
+    'bg-gradient-to-br from-pink-500 to-pink-600'
   ];
 
   const features = [
@@ -159,21 +189,109 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredCategories.map((category, index) => (
-              <Link
-                key={index}
-                to={`/furniture?category=${category.name.toLowerCase().replace(' ', '-')}`}
-                className="group"
-              >
-                <Card className={`${category.color} text-white h-40 flex items-center justify-center hover:scale-105 transition-transform shadow-soft hover:shadow-medium`}>
-                  <CardContent className="text-center">
-                    <h3 className="text-xl font-bold mb-2">{category.name}</h3>
-                    <p className="text-white/90">{category.count}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+            {loading ? (
+              // Loading skeleton
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="h-40 bg-gray-200 rounded-lg animate-pulse" />
+              ))
+            ) : (
+              categories.slice(0, 4).map((category, index) => (
+                <Link
+                  key={category._id}
+                  to={`/furniture?category=${category._id}`}
+                  className="group"
+                >
+                  <Card className={`${categoryColors[index % categoryColors.length]} text-white h-40 flex items-center justify-center hover:scale-105 transition-transform shadow-soft hover:shadow-medium`}>
+                    <CardContent className="text-center">
+                      <h3 className="text-xl font-bold mb-2">{category.name}</h3>
+                      <p className="text-white/90">Browse items</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))
+            )}
           </div>
+        </div>
+      </section>
+
+      {/* Featured Items Section */}
+      <section className="py-20 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
+              Featured Furniture
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Discover our handpicked selection of premium furniture pieces
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {loading ? (
+              // Loading skeleton
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="bg-gray-200 rounded-lg h-80 animate-pulse" />
+              ))
+            ) : featuredItems.length > 0 ? (
+              featuredItems.slice(0, 4).map((item) => (
+                <Link key={item._id} to={`/furniture/${item._id}`}>
+                  <Card className="group hover:shadow-medium transition-shadow">
+                    <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
+                      {item.images && item.images.length > 0 ? (
+                        <img
+                          src={item.images[0]}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          No Image
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.name}</h3>
+                      <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{item.description}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {item.saleType === 'sale' && item.price && (
+                            <span className="text-lg font-bold text-primary">${item.price}</span>
+                          )}
+                          {item.saleType === 'rent' && item.rentPrice && (
+                            <span className="text-lg font-bold text-primary">${item.rentPrice}/mo</span>
+                          )}
+                          {item.saleType === 'both' && (
+                            <div className="flex flex-col">
+                              {item.price && <span className="text-sm font-bold text-primary">Buy: ${item.price}</span>}
+                              {item.rentPrice && <span className="text-sm font-bold text-primary">Rent: ${item.rentPrice}/mo</span>}
+                            </div>
+                          )}
+                        </div>
+                        <Badge variant={item.condition === 'new' ? 'default' : 'secondary'}>
+                          {item.condition}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-muted-foreground">No featured items available at the moment.</p>
+              </div>
+            )}
+          </div>
+
+          {featuredItems.length > 0 && (
+            <div className="text-center mt-12">
+              <Link to="/furniture">
+                <Button size="lg" className="bg-gradient-primary hover:opacity-90">
+                  View All Furniture
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

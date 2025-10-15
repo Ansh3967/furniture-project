@@ -81,7 +81,7 @@ const AdminLogin = () => {
             Admin Login
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Sign in to access the admin dashboard
+            Login to access the admin dashboard
           </p>
         </div>
 
@@ -129,7 +129,7 @@ const AdminLogin = () => {
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Logging in..." : "Login"}
               </Button>
             </form>
 

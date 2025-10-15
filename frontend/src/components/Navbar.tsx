@@ -247,7 +247,7 @@ const Navbar = () => {
                   Login
                 </Button>
                 <Button size="sm" onClick={() => navigate("/signup")}>
-                  Sign Up
+                  Register
                 </Button>
               </div>
             )}

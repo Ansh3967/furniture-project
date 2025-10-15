@@ -16,6 +16,7 @@ const UserSignup = () => {
     lastName: '',
     email: '',
     phone: '',
+    address: '',
     password: '',
     confirmPassword: '',
     agreeTerms: false
@@ -63,7 +64,8 @@ const UserSignup = () => {
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
-        phone: formData.phone
+        phone: formData.phone,
+        address: formData.address
       });
 
       toast({
@@ -145,6 +147,17 @@ const UserSignup = () => {
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Address (Optional)</Label>
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="Enter your address"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
                 />
               </div>
 
@@ -231,7 +244,7 @@ const UserSignup = () => {
               <div className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link to="/login" className="text-accent hover:underline font-medium">
-                  Sign in here
+                  Login here
                 </Link>
               </div>
             </form>

@@ -4,9 +4,16 @@ const validate = (schema) => {
   return (req, res, next) => {
     const errors = [];
 
-    // Validate body if schema.body exists
+    // If schema has body property, validate body
     if (schema.body) {
       const { error } = schema.body.validate(req.body, { abortEarly: false });
+      if (error) {
+        errors.push(...error.details.map(detail => detail.message));
+      }
+    }
+    // If schema is an object with Joi properties (direct validation)
+    else {
+      const { error } = Joi.object(schema).validate(req.body, { abortEarly: false });
       if (error) {
         errors.push(...error.details.map(detail => detail.message));
       }

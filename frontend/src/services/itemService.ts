@@ -71,7 +71,7 @@ export const itemService = {
   // Get all items with filtering and pagination
   getItems: async (filters?: ItemFilters): Promise<ItemResponse> => {
     try {
-      const response = await api.get("/user/items", { params: filters });
+      const response = await api.get("/user/item", { params: filters });
       return response.data;
     } catch (error) {
       console.error("Error fetching items:", error);
@@ -82,7 +82,7 @@ export const itemService = {
   // Get single item by ID
   getItem: async (id: string): Promise<Item> => {
     try {
-      const response = await api.get(`/user/items/${id}`);
+      const response = await api.get(`/user/item/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching item:", error);
@@ -93,7 +93,7 @@ export const itemService = {
   // Get featured items
   getFeaturedItems: async (limit: number = 8): Promise<Item[]> => {
     try {
-      const response = await api.get("/user/items", {
+      const response = await api.get("/user/item", {
         params: { isFeatured: true, limit },
       });
       return response.data.items || [];
@@ -109,7 +109,7 @@ export const itemService = {
     filters?: ItemFilters
   ): Promise<ItemResponse> => {
     try {
-      const response = await api.get("/user/items", {
+      const response = await api.get("/user/item", {
         params: { category: categoryId, ...filters },
       });
       return response.data;
@@ -125,7 +125,7 @@ export const itemService = {
     filters?: ItemFilters
   ): Promise<ItemResponse> => {
     try {
-      const response = await api.get("/user/items", {
+      const response = await api.get("/user/item", {
         params: { search: query, ...filters },
       });
       return response.data;
@@ -142,7 +142,7 @@ export const itemService = {
     limit: number = 4
   ): Promise<Item[]> => {
     try {
-      const response = await api.get("/user/items", {
+      const response = await api.get("/user/item", {
         params: {
           category: categoryId,
           limit,

@@ -47,12 +47,6 @@ const AdminSidebar = ({ isOpen, onToggle }: SidebarProps) => {
       current: location.pathname.startsWith('/admin/categories')
     },
     {
-      name: 'Media',
-      href: '/admin/media',
-      icon: Image,
-      current: location.pathname.startsWith('/admin/media')
-    },
-    {
       name: 'Users',
       href: '/admin/users',
       icon: Users,
@@ -63,12 +57,6 @@ const AdminSidebar = ({ isOpen, onToggle }: SidebarProps) => {
       href: '/admin/orders',
       icon: ShoppingCart,
       current: location.pathname.startsWith('/admin/orders')
-    },
-    {
-      name: 'Analytics',
-      href: '/admin/analytics',
-      icon: BarChart3,
-      current: location.pathname.startsWith('/admin/analytics')
     },
     {
       name: 'Settings',

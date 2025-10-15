@@ -7,50 +7,39 @@ export interface Category {
   createdAt: string;
 }
 
-export interface CreateCategoryData {
+export interface CategoryCreateData {
   name: string;
 }
 
 export const categoryService = {
-  // User category service (public access)
-  getAllCategories: async (): Promise<{
-    categories: Category[];
-    total: number;
-  }> => {
-    const response = await api.get("/user/category");
+  // User-facing category methods
+  getCategories: async (): Promise<Category[]> => {
+    const response = await api.get("/category");
+    return response.data.categories;
+  },
+
+  getCategory: async (id: string): Promise<Category> => {
+    const response = await api.get(`/category/${id}`);
     return response.data;
   },
 
-  getCategoryById: async (id: string): Promise<Category> => {
-    const response = await api.get(`/user/category/${id}`);
-    return response.data;
-  },
-
-  // Admin category service (protected access)
-  adminGetAllCategories: async (): Promise<{
-    categories: Category[];
-    total: number;
-  }> => {
+  // Admin category management methods
+  adminGetAllCategories: async (): Promise<{ categories: Category[]; total: number }> => {
     const response = await adminApi.get("/admin/categories");
     return response.data;
   },
 
-  adminGetCategoryById: async (id: string): Promise<Category> => {
+  adminGetCategory: async (id: string): Promise<Category> => {
     const response = await adminApi.get(`/admin/categories/${id}`);
     return response.data;
   },
 
-  adminCreateCategory: async (
-    data: CreateCategoryData
-  ): Promise<{ message: string; category: Category }> => {
+  adminCreateCategory: async (data: CategoryCreateData): Promise<{ message: string; category: Category }> => {
     const response = await adminApi.post("/admin/categories", data);
     return response.data;
   },
 
-  adminUpdateCategory: async (
-    id: string,
-    data: Partial<CreateCategoryData>
-  ): Promise<{ message: string; category: Category }> => {
+  adminUpdateCategory: async (id: string, data: CategoryCreateData): Promise<{ message: string; category: Category }> => {
     const response = await adminApi.put(`/admin/categories/${id}`, data);
     return response.data;
   },
@@ -58,5 +47,5 @@ export const categoryService = {
   adminDeleteCategory: async (id: string): Promise<{ message: string }> => {
     const response = await adminApi.delete(`/admin/categories/${id}`);
     return response.data;
-  },
+  }
 };

@@ -23,7 +23,7 @@ export const add = {
       otherwise: Joi.optional(),
     }),
   depositPrice: Joi.number().min(0).default(0),
-  images: Joi.array().items(Joi.string().hex().length(24)).default([]),
+  images: Joi.array().items(Joi.string()).default([]),
   specifications: Joi.object({
     dimensions: Joi.object({
       length: Joi.number(),
@@ -46,6 +46,7 @@ export const add = {
     .default("new"),
   tags: Joi.array().items(Joi.string()),
   isFeatured: Joi.boolean().default(false),
+  viewCount: Joi.number().min(0).default(0),
 };
 
 export const edit = {
@@ -57,7 +58,7 @@ export const edit = {
   price: Joi.number().min(0),
   rentPrice: Joi.number().min(0),
   depositPrice: Joi.number().min(0),
-  images: Joi.array().items(Joi.string().hex().length(24)),
+  images: Joi.array().items(Joi.string()),
   specifications: Joi.object({
     dimensions: Joi.object({
       length: Joi.number(),
@@ -78,6 +79,7 @@ export const edit = {
   condition: Joi.string().valid("new", "like_new", "good", "fair"),
   tags: Joi.array().items(Joi.string()),
   isFeatured: Joi.boolean(),
+  viewCount: Joi.number().min(0),
 };
 
 export const list = {

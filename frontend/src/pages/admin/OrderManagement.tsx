@@ -8,8 +8,46 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Eye, Package, Calendar, DollarSign, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { orderService, Order } from '@/services/orderService';
+import { adminService, Order } from '@/services/adminService';
 
+interface OrderItem {
+  item: {
+    _id: string;
+    name: string;
+    price?: number;
+    rentPrice?: number;
+    images: string[];
+  };
+  name: string;
+  quantity: number;
+  price: number;
+  type: 'sell' | 'rent';
+}
+
+interface Order {
+  _id: string;
+  orderNumber: string;
+  user: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+  items: OrderItem[];
+  total: number;
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'completed' | 'cancelled' | 'returned';
+  type: 'purchase' | 'rental';
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentMethod: string;
+  shippingAddress: string;
+  notes?: string;
+  trackingNumber?: string;
+  deliveryDate?: string;
+  returnDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -26,8 +64,8 @@ const OrderManagement = () => {
     const loadOrders = async () => {
       setLoading(true);
       try {
-        const response = await orderService.getAllOrders();
-        setOrders(response.orders);
+        const response = await adminService.getOrders();
+        setOrders(response.orders || []);
       } catch (error) {
         console.error('Failed to load orders:', error);
         toast({
@@ -35,22 +73,24 @@ const OrderManagement = () => {
           description: "Failed to load orders. Please try again.",
           variant: "destructive",
         });
+        // Show empty state on error
+        setOrders([]);
       } finally {
         setLoading(false);
       }
     };
 
     loadOrders();
-  }, []);
+  }, [toast]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
-      await orderService.updateOrderStatus(orderId, newStatus);
+      await adminService.updateOrderStatus(orderId, newStatus);
       
       // Update local state
       setOrders(orders.map(order => 
         order._id === orderId 
-          ? { ...order, status: newStatus as any, updatedAt: new Date().toISOString().split('T')[0] }
+          ? { ...order, status: newStatus as any, updatedAt: new Date().toISOString() }
           : order
       ));
       
@@ -95,10 +135,11 @@ const OrderManagement = () => {
   };
 
   const filteredOrders = orders.filter(order => {
+    const customerName = `${order.user.firstName} ${order.user.lastName}`;
     const matchesSearch = 
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+      customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     const matchesType = typeFilter === 'all' || order.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
@@ -201,8 +242,8 @@ const OrderManagement = () => {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{order.customer.name}</p>
-                      <p className="text-sm text-muted-foreground">{order.customer.email}</p>
+                      <p className="font-medium">{order.user.firstName} {order.user.lastName}</p>
+                      <p className="text-sm text-muted-foreground">{order.user.email}</p>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -297,9 +338,9 @@ const OrderManagement = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <p><strong>Name:</strong> {selectedOrder.customer.name}</p>
-                    <p><strong>Email:</strong> {selectedOrder.customer.email}</p>
-                    <p><strong>Phone:</strong> {selectedOrder.customer.phone}</p>
+                    <p><strong>Name:</strong> {selectedOrder.user.firstName} {selectedOrder.user.lastName}</p>
+                    <p><strong>Email:</strong> {selectedOrder.user.email}</p>
+                    <p><strong>Phone:</strong> {selectedOrder.user.phone}</p>
                   </CardContent>
                 </Card>
                 <Card>

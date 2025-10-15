@@ -28,10 +28,8 @@ import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import ItemManagement from "./pages/admin/ItemManagement";
-import MediaManagement from "./pages/admin/MediaManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import OrderManagement from "./pages/admin/OrderManagement";
-import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
@@ -73,10 +71,8 @@ const App = () => (
                 <Route index element={<AdminDashboard />} />
                 <Route path="categories" element={<CategoryManagement />} />
                 <Route path="items" element={<ItemManagement />} />
-                <Route path="media" element={<MediaManagement />} />
                 <Route path="users" element={<UserManagement />} />
                 <Route path="orders" element={<OrderManagement />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
 

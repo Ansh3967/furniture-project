@@ -95,6 +95,20 @@ export interface ItemCreateData {
   isFeatured?: boolean;
 }
 
+// User interfaces
+export interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  role: "user" | "admin";
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Order interfaces
 export interface Order {
   _id: string;
@@ -163,29 +177,15 @@ export interface Order {
 export const adminService = {
   // Admin authentication
   adminLogin: async (data: AdminLoginData): Promise<AdminAuthResponse> => {
-    try {
-      console.log("🔐 Admin login request:", data);
-      const response = await adminApi.post("/admin/auth/login", data);
-      console.log("✅ Admin login response:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("❌ Admin login error:", error);
-      throw error;
-    }
+    const response = await adminApi.post("/admin/auth/login", data);
+    return response.data;
   },
 
   adminRegister: async (
     data: AdminRegisterData
   ): Promise<{ message: string }> => {
-    try {
-      console.log("📝 Admin register request:", data);
-      const response = await adminApi.post("/admin/auth/register", data);
-      console.log("✅ Admin register response:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("❌ Admin register error:", error);
-      throw error;
-    }
+    const response = await adminApi.post("/admin/auth/register", data);
+    return response.data;
   },
 
   getAdminProfile: async (): Promise<Admin> => {
@@ -211,37 +211,45 @@ export const adminService = {
     sortBy?: string;
     sortOrder?: string;
   }) => {
-    const response = await adminApi.get("/items", { params });
+    const response = await adminApi.get("/admin/items", { params });
     return response.data;
   },
 
   getItem: async (id: string): Promise<Item> => {
-    const response = await adminApi.get(`/items/${id}`);
+    const response = await adminApi.get(`/admin/items/${id}`);
     return response.data;
   },
 
-  createItem: async (data: ItemCreateData) => {
-    const response = await adminApi.post("/items", data);
+  createItem: async (data: ItemCreateData | FormData) => {
+    const response = await adminApi.post("/admin/items", data, {
+      headers: data instanceof FormData ? {
+        'Content-Type': 'multipart/form-data',
+      } : {}
+    });
     return response.data;
   },
 
-  updateItem: async (id: string, data: Partial<ItemCreateData>) => {
-    const response = await adminApi.put(`/items/${id}`, data);
+  updateItem: async (id: string, data: Partial<ItemCreateData> | FormData) => {
+    const response = await adminApi.put(`/admin/items/${id}`, data, {
+      headers: data instanceof FormData ? {
+        'Content-Type': 'multipart/form-data',
+      } : {}
+    });
     return response.data;
   },
 
   deleteItem: async (id: string) => {
-    const response = await adminApi.delete(`/items/${id}`);
+    const response = await adminApi.delete(`/admin/items/${id}`);
     return response.data;
   },
 
   toggleItemFeatured: async (id: string) => {
-    const response = await adminApi.patch(`/items/${id}/featured`);
+    const response = await adminApi.patch(`/admin/items/${id}/featured`);
     return response.data;
   },
 
   getItemStats: async () => {
-    const response = await adminApi.get("/items/stats");
+    const response = await adminApi.get("/admin/items/stats");
     return response.data;
   },
 
@@ -256,17 +264,17 @@ export const adminService = {
     endDate?: string;
     search?: string;
   }) => {
-    const response = await adminApi.get("/orders", { params });
+    const response = await adminApi.get("/admin/orders", { params });
     return response.data;
   },
 
   getOrder: async (id: string): Promise<Order> => {
-    const response = await adminApi.get(`/orders/${id}`);
+    const response = await adminApi.get(`/admin/orders/${id}`);
     return response.data;
   },
 
   updateOrderStatus: async (id: string, status: string, notes?: string) => {
-    const response = await adminApi.patch(`/orders/${id}/status`, {
+    const response = await adminApi.patch(`/admin/orders/${id}/status`, {
       status,
       notes,
     });
@@ -274,21 +282,21 @@ export const adminService = {
   },
 
   updatePaymentStatus: async (id: string, paymentStatus: string) => {
-    const response = await adminApi.patch(`/orders/${id}/payment`, {
+    const response = await adminApi.patch(`/admin/orders/${id}/payment`, {
       paymentStatus,
     });
     return response.data;
   },
 
   addTrackingNumber: async (id: string, trackingNumber: string) => {
-    const response = await adminApi.patch(`/orders/${id}/tracking`, {
+    const response = await adminApi.patch(`/admin/orders/${id}/tracking`, {
       trackingNumber,
     });
     return response.data;
   },
 
   getOrderStats: async () => {
-    const response = await adminApi.get("/orders/stats/overview");
+    const response = await adminApi.get("/admin/orders/stats/overview");
     return response.data;
   },
 
@@ -296,7 +304,46 @@ export const adminService = {
     status: string,
     params?: { page?: number; limit?: number }
   ) => {
-    const response = await adminApi.get(`/orders/status/${status}`, { params });
+    const response = await adminApi.get(`/admin/orders/status/${status}`, { params });
+    return response.data;
+  },
+
+  // User management
+  getUsers: async (params?: {
+    page?: number;
+    limit?: number;
+    role?: string;
+    isActive?: boolean;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => {
+    const response = await adminApi.get("/admin/users", { params });
+    return response.data;
+  },
+
+  getUser: async (id: string): Promise<User> => {
+    const response = await adminApi.get(`/admin/users/${id}`);
+    return response.data;
+  },
+
+  updateUser: async (id: string, data: Partial<User>) => {
+    const response = await adminApi.put(`/admin/users/${id}`, data);
+    return response.data;
+  },
+
+  deleteUser: async (id: string) => {
+    const response = await adminApi.delete(`/admin/users/${id}`);
+    return response.data;
+  },
+
+  toggleUserStatus: async (id: string) => {
+    const response = await adminApi.patch(`/admin/users/${id}/status`);
+    return response.data;
+  },
+
+  getUserStats: async () => {
+    const response = await adminApi.get("/admin/users/stats");
     return response.data;
   },
 };

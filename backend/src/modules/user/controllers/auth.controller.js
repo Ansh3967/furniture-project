@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 export const register = async (req, res) => {
   try {
     const requestData = req.body;
-    const { firstName, lastName, email, password, phone } = requestData;
+    const { firstName, lastName, email, password, phone, address } = requestData;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -26,6 +26,7 @@ export const register = async (req, res) => {
       email,
       password: hashedPassword,
       phone,
+      address: address || '',
     });
 
     await user.save();
@@ -109,7 +110,7 @@ export const profileEdit = async (req, res) => {
     const user = req.user;
     const requestData = req.body;
     const updates = {};
-    const allowedFields = ["firstName", "lastName", "email", "phone", "password"];
+    const allowedFields = ["firstName", "lastName", "email", "phone", "address", "password"];
     allowedFields.forEach((field) => {
       if (requestData[field]) {
         updates[field] = requestData[field];

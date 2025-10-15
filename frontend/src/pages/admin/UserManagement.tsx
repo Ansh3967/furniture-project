@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Search, Filter, Eye, Edit, Trash2, UserPlus, Mail, Phone, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { adminService, User as AdminUser } from '@/services/adminService';
 
 interface User {
   _id: string;
@@ -45,100 +46,54 @@ const UserManagement = () => {
   });
   const { toast } = useToast();
 
-  // Sample data - replace with actual API calls
+  // Load users from API
   useEffect(() => {
     const loadUsers = async () => {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setUsers([
-          {
-            _id: '1',
-            firstName: 'Rajesh',
-            lastName: 'Kumar',
-            email: 'rajesh.kumar@email.com',
-            phone: '+91 98765 43210',
-            role: 'user',
-            isActive: true,
-            ordersCount: 5,
-            totalSpent: 24999,
-            lastLogin: '2024-01-15',
-            createdAt: '2024-01-01'
-          },
-          {
-            _id: '2',
-            firstName: 'Priya',
-            lastName: 'Sharma',
-            email: 'priya.sharma@email.com',
-            phone: '+91 87654 32109',
-            role: 'user',
-            isActive: true,
-            ordersCount: 3,
-            totalSpent: 12999,
-            lastLogin: '2024-01-14',
-            createdAt: '2024-01-02'
-          },
-          {
-            _id: '3',
-            firstName: 'Amit',
-            lastName: 'Patel',
-            email: 'amit.patel@email.com',
-            phone: '+91 76543 21098',
-            role: 'user',
-            isActive: false,
-            ordersCount: 1,
-            totalSpent: 5999,
-            lastLogin: '2024-01-10',
-            createdAt: '2024-01-03'
-          },
-          {
-            _id: '4',
-            firstName: 'Sunita',
-            lastName: 'Reddy',
-            email: 'sunita.reddy@email.com',
-            phone: '+91 65432 10987',
-            role: 'admin',
-            isActive: true,
-            ordersCount: 0,
-            totalSpent: 0,
-            lastLogin: '2024-01-15',
-            createdAt: '2024-01-01'
-          }
-        ]);
+      try {
+        const response = await adminService.getUsers();
+        
+        // Transform the data to match the frontend interface
+        const transformedUsers = response.users.map((user: AdminUser) => ({
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          isActive: user.isActive,
+          ordersCount: 0, // This would need to be calculated from orders
+          totalSpent: 0, // This would need to be calculated from orders
+          lastLogin: new Date(user.updatedAt).toISOString().split('T')[0],
+          createdAt: new Date(user.createdAt).toISOString().split('T')[0]
+        }));
+        setUsers(transformedUsers);
+      } catch (error) {
+        console.error('Failed to load users:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load users. Please try again.",
+          variant: "destructive",
+        });
+        setUsers([]);
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
     loadUsers();
-  }, []);
+  }, [toast]);
 
   const handleAddUser = async () => {
     try {
-      // API call to add user
-      const newUser = {
-        _id: Date.now().toString(),
-        ...formData,
-        ordersCount: 0,
-        totalSpent: 0,
-        lastLogin: new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      
-      setUsers([...users, newUser]);
-      setIsAddDialogOpen(false);
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        role: 'user',
-        isActive: true
-      });
-      
+      // Note: User creation should be done through registration
+      // This is just for demonstration - in real app, users register themselves
       toast({
-        title: "User Added",
-        description: "New user has been created successfully.",
+        title: "Info",
+        description: "Users should register themselves through the registration page.",
+        variant: "default",
       });
+      setIsAddDialogOpen(false);
     } catch (error) {
       toast({
         title: "Error",
@@ -153,6 +108,16 @@ const UserManagement = () => {
     
     try {
       // API call to update user
+      const response = await adminService.updateUser(editingUser._id, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        role: formData.role,
+        isActive: formData.isActive
+      });
+      
+      // Update local state
       setUsers(users.map(user => 
         user._id === editingUser._id 
           ? { ...user, ...formData }
@@ -175,6 +140,7 @@ const UserManagement = () => {
         description: "User information has been updated successfully.",
       });
     } catch (error) {
+      console.error('Update user error:', error);
       toast({
         title: "Error",
         description: "Failed to update user. Please try again.",
@@ -186,6 +152,7 @@ const UserManagement = () => {
   const handleDeleteUser = async (userId: string) => {
     try {
       // API call to delete user
+      await adminService.deleteUser(userId);
       setUsers(users.filter(user => user._id !== userId));
       
       toast({
@@ -193,6 +160,7 @@ const UserManagement = () => {
         description: "User has been deleted successfully.",
       });
     } catch (error) {
+      console.error('Delete user error:', error);
       toast({
         title: "Error",
         description: "Failed to delete user. Please try again.",
@@ -203,6 +171,8 @@ const UserManagement = () => {
 
   const handleToggleUserStatus = async (userId: string) => {
     try {
+      // API call to toggle user status
+      await adminService.toggleUserStatus(userId);
       setUsers(users.map(user => 
         user._id === userId 
           ? { ...user, isActive: !user.isActive }
@@ -214,6 +184,7 @@ const UserManagement = () => {
         description: "User status has been updated successfully.",
       });
     } catch (error) {
+      console.error('Toggle user status error:', error);
       toast({
         title: "Error",
         description: "Failed to update user status. Please try again.",

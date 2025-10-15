@@ -24,7 +24,9 @@ adminApi.interceptors.request.use(
 
 // Response interceptor to handle admin auth errors
 adminApi.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       // Clear admin tokens and redirect to admin login
