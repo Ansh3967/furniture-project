@@ -30,16 +30,8 @@ export const createOrder = async (req, res) => {
       type: item.type,
     }));
 
-    // NOTE: Accept any paymentMethod, even if unknown to the schema enum
-    // To do this, do not set the field at all if it's not recognized, or
-    // allow-through at schema/model level or set strict: false in schema.
-    // Here, we write the paymentMethod to the doc extra, and rely on
-    // schema option or modify the model
-    // For quick fix, we omit schema validation for paymentMethod
-
-    // We'll create the order as a plain object, then manually set paymentMethod,
-    // which bypasses Mongoose's enum check on the schema.
-    let order = new Order({
+    // Create order with all fields including paymentMethod
+    const order = new Order({
       orderNumber,
       user: userId,
       items: orderItems,
@@ -47,13 +39,10 @@ export const createOrder = async (req, res) => {
       type,
       status: "pending",
       paymentStatus: "pending",
+      paymentMethod,
       shippingAddress,
-      // Omit paymentMethod here for bypass, add it after
       notes: `Order placed via ${paymentMethod}`,
     });
-
-    // Set paymentMethod, bypassing Mongoose schema validation
-    order.paymentMethod = paymentMethod;
 
     await order.save();
 
@@ -67,19 +56,6 @@ export const createOrder = async (req, res) => {
       order: populatedOrder,
     });
   } catch (error) {
-    // Handle schema (CastError / ValidationError) by explicitly allowing paymentMethod
-    if (
-      error.name === "ValidationError" &&
-      error.errors &&
-      error.errors.paymentMethod
-    ) {
-      return res.status(201).json({
-        message: "Order created successfully (non-standard payment method)",
-        warning: "Payment method is non-standard but accepted",
-        // Don't return error
-        order: null,
-      });
-    }
     console.error("Order creation error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }

@@ -76,6 +76,8 @@ type AppAction =
   | { type: 'ADD_TO_CART'; payload: CartItem }
   | { type: 'REMOVE_FROM_CART'; payload: string }
   | { type: 'UPDATE_CART_QUANTITY'; payload: { id: string; quantity: number } }
+  | { type: 'INITIALIZE_CART'; payload: CartItem[] }
+  | { type: 'INITIALIZE_WISHLIST'; payload: string[] }
   | { type: 'CLEAR_CART' }
   | { type: 'ADD_TO_WISHLIST'; payload: string }
   | { type: 'REMOVE_FROM_WISHLIST'; payload: string }
@@ -310,6 +312,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       localStorage.removeItem('adminUser');
       localStorage.removeItem('adminToken');
       localStorage.removeItem('userType');
+      localStorage.removeItem('cart');
+      localStorage.removeItem('wishlist');
       return {
         ...state,
         user: null,
@@ -325,54 +329,80 @@ function appReducer(state: AppState, action: AppAction): AppState {
         item => item.furniture.id === action.payload.furniture.id && item.type === action.payload.type
       );
       
+      let newCart;
       if (existingItem) {
-        return {
-          ...state,
-          cart: state.cart.map(item =>
-            item.furniture.id === action.payload.furniture.id && item.type === action.payload.type
-              ? { ...item, quantity: item.quantity + action.payload.quantity }
-              : item
-          )
-        };
+        newCart = state.cart.map(item =>
+          item.furniture.id === action.payload.furniture.id && item.type === action.payload.type
+            ? { ...item, quantity: item.quantity + action.payload.quantity }
+            : item
+        );
+      } else {
+        newCart = [...state.cart, action.payload];
       }
+      
+      // Save cart to localStorage
+      localStorage.setItem('cart', JSON.stringify(newCart));
       
       return {
         ...state,
-        cart: [...state.cart, action.payload]
+        cart: newCart
       };
     
     case 'REMOVE_FROM_CART':
+      const filteredCart = state.cart.filter(item => item.furniture.id !== action.payload);
+      localStorage.setItem('cart', JSON.stringify(filteredCart));
+      
       return {
         ...state,
-        cart: state.cart.filter(item => item.furniture.id !== action.payload)
+        cart: filteredCart
       };
     
     case 'UPDATE_CART_QUANTITY':
+      const updatedCart = state.cart.map(item =>
+        item.furniture.id === action.payload.id
+          ? { ...item, quantity: action.payload.quantity }
+          : item
+      );
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      
       return {
         ...state,
-        cart: state.cart.map(item =>
-          item.furniture.id === action.payload.id
-            ? { ...item, quantity: action.payload.quantity }
-            : item
-        )
+        cart: updatedCart
       };
     
     case 'CLEAR_CART':
+      localStorage.removeItem('cart');
       return {
         ...state,
         cart: []
       };
     
-    case 'ADD_TO_WISHLIST':
+    case 'INITIALIZE_CART':
       return {
         ...state,
-        wishlist: [...state.wishlist, action.payload]
+        cart: action.payload
+      };
+    
+    case 'INITIALIZE_WISHLIST':
+      return {
+        ...state,
+        wishlist: action.payload
+      };
+    
+    case 'ADD_TO_WISHLIST':
+      const newWishlist = [...state.wishlist, action.payload];
+      localStorage.setItem('wishlist', JSON.stringify(newWishlist));
+      return {
+        ...state,
+        wishlist: newWishlist
       };
     
     case 'REMOVE_FROM_WISHLIST':
+      const filteredWishlist = state.wishlist.filter(id => id !== action.payload);
+      localStorage.setItem('wishlist', JSON.stringify(filteredWishlist));
       return {
         ...state,
-        wishlist: state.wishlist.filter(id => id !== action.payload)
+        wishlist: filteredWishlist
       };
     
     case 'SET_SEARCH_QUERY':
@@ -438,7 +468,7 @@ const AppContext = createContext<{
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Initialize user from localStorage
+  // Initialize user and cart from localStorage
   React.useEffect(() => {
     const userType = localStorage.getItem('userType');
     if (userType === 'user') {
@@ -452,6 +482,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (savedAdmin) {
         const admin = JSON.parse(savedAdmin);
         dispatch({ type: 'ADMIN_LOGIN', payload: admin });
+      }
+    }
+    
+    // Initialize cart from localStorage
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      try {
+        const cart = JSON.parse(savedCart);
+        dispatch({ type: 'INITIALIZE_CART', payload: cart });
+      } catch (error) {
+        console.error('Failed to load cart from localStorage:', error);
+        localStorage.removeItem('cart');
+      }
+    }
+    
+    // Initialize wishlist from localStorage
+    const savedWishlist = localStorage.getItem('wishlist');
+    if (savedWishlist) {
+      try {
+        const wishlist = JSON.parse(savedWishlist);
+        dispatch({ type: 'INITIALIZE_WISHLIST', payload: wishlist });
+      } catch (error) {
+        console.error('Failed to load wishlist from localStorage:', error);
+        localStorage.removeItem('wishlist');
       }
     }
   }, []);

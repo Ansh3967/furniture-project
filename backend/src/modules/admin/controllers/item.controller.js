@@ -84,6 +84,12 @@ export const add = async (req, res) => {
   try {
     const itemData = req.body;
 
+    // Handle uploaded images
+    if (req.files && req.files.length > 0) {
+      const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+      itemData.images = imageUrls;
+    }
+
     // Validate category exists
     if (itemData.category) {
       const category = await Category.findById(itemData.category);
@@ -117,6 +123,12 @@ export const edit = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+
+    // Handle uploaded images
+    if (req.files && req.files.length > 0) {
+      const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+      updateData.images = imageUrls;
+    }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid item ID" });

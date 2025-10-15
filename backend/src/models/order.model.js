@@ -70,11 +70,15 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       enum: [
+        "card",
         "credit_card",
         "debit_card",
         "paypal",
         "bank_transfer",
         "cash_on_delivery",
+        "upi",
+        "wallet",
+        "net_banking",
       ],
       required: true,
     },

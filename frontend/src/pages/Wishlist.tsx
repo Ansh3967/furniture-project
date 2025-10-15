@@ -1,31 +1,67 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, ShoppingCart, Trash2, Star, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { itemService, Item } from '@/services/itemService';
 
 const Wishlist = () => {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get wishlist items from furniture data
-  const wishlistItems = state.furniture.filter(item => 
-    state.wishlist.includes(item.id)
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await itemService.getItems();
+        setItems(response.items);
+      } catch (error) {
+        console.error('Failed to fetch items:', error);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
+  // Get wishlist items from real data
+  const wishlistItems = items.filter(item => 
+    state.wishlist.includes(item._id)
   );
 
   const handleRemoveFromWishlist = (itemId: string) => {
     dispatch({ type: 'REMOVE_FROM_WISHLIST', payload: itemId });
   };
 
-  const handleAddToCart = (furniture: any) => {
+  const handleAddToCart = (item: Item) => {
+    // Convert Item to Furniture format for cart
+    const furniture = {
+      id: item._id,
+      title: item.name,
+      description: item.description,
+      category: item.category?.name || 'Unknown',
+      type: item.saleType === 'sale' ? 'sell' : item.saleType,
+      price: item.price || 0,
+      rentPrice: item.rentPrice || 0,
+      deposit: item.depositPrice || 0,
+      availability: item.availability === 'available',
+      sellerId: 'admin',
+      rating: 0,
+      reviewCount: 0,
+      images: item.images && item.images.length > 0 ? item.images : ['/placeholder.svg'],
+    };
+
     dispatch({
       type: 'ADD_TO_CART',
       payload: {
         furniture,
         quantity: 1,
-        type: furniture.type === 'rent' ? 'rent' : 'sell'
+        type: item.saleType === 'rent' ? 'rent' : 'sell'
       }
     });
   };
@@ -46,7 +82,12 @@ const Wishlist = () => {
           </p>
         </div>
         
-        {wishlistItems.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-lg text-gray-600">Loading your wishlist...</p>
+          </div>
+        ) : wishlistItems.length === 0 ? (
           <div className="text-center py-16">
             <div className="bg-white rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 shadow-lg">
               <Heart className="w-12 h-12 text-pink-500" />
@@ -65,12 +106,12 @@ const Wishlist = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {wishlistItems.map((item) => (
-              <Card key={item.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <Card key={item._id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
                 <div className="relative">
                   <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg overflow-hidden">
                     <img 
-                      src={item.images[0] || '/placeholder.svg'} 
-                      alt={item.title}
+                      src={item.images && item.images.length > 0 ? item.images[0] : '/placeholder.svg'} 
+                      alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
@@ -78,11 +119,11 @@ const Wishlist = () => {
                     variant="ghost"
                     size="sm"
                     className="absolute top-2 right-2 bg-white/90 hover:bg-red-500 hover:text-white transition-colors duration-200"
-                    onClick={() => handleRemoveFromWishlist(item.id)}
+                    onClick={() => handleRemoveFromWishlist(item._id)}
                   >
                     <Heart className="w-4 h-4 fill-red-500 text-red-500" />
                   </Button>
-                  {item.type === 'rent' && (
+                  {item.saleType === 'rent' && (
                     <Badge className="absolute top-2 left-2 bg-green-500 text-white">
                       For Rent
                     </Badge>
@@ -91,7 +132,7 @@ const Wishlist = () => {
                 
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-1">
-                    {item.title}
+                    {item.name}
                   </CardTitle>
                   <CardDescription className="text-sm text-gray-600 line-clamp-2">
                     {item.description}
@@ -102,11 +143,11 @@ const Wishlist = () => {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium text-gray-900">{item.rating}</span>
-                      <span className="text-sm text-gray-500">({item.reviewCount})</span>
+                      <span className="text-sm font-medium text-gray-900">0</span>
+                      <span className="text-sm text-gray-500">(0)</span>
                     </div>
                     <Badge variant="secondary" className="text-xs">
-                      {item.category}
+                      {item.category?.name || 'Unknown'}
                     </Badge>
                   </div>
                   

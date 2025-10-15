@@ -78,10 +78,16 @@ const FurnitureListing = () => {
         ...item,
         id: item._id,
         title: item.name,
+        description: item.description,
+        category: item.category?.name || 'Unknown',
         type: item.saleType === "sale" ? "sell" : item.saleType,
         price: item.price || 0,
         rentPrice: item.rentPrice || 0,
-        depositPrice: item.depositPrice || 0,
+        deposit: item.depositPrice || 0,
+        availability: item.availability === 'available',
+        sellerId: 'admin', // Since items are created by admin
+        rating: 0, // Default rating
+        reviewCount: 0, // Default review count
         images: imageUrls.length > 0 ? imageUrls : ["/placeholder.svg"],
       };
     });
