@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ShoppingCart, User, Menu, Heart, LogOut, Settings, Shield } from "lucide-react";
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Menu,
+  Heart,
+  LogOut,
+  Settings,
+  Shield,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -23,22 +32,15 @@ const Navbar = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await categoryService.getAllCategories();
-        const categoryNames = response.categories.map((cat) => cat.name);
+        // Use getCategories which fetches from database (see categoryService)
+        const response = await categoryService.getCategories();
+        // Only add "All" + names from DB
+        const categoryNames = response.map((cat) => cat.name);
         setCategories(["All", ...categoryNames]);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
-        // Fallback to default categories
-        setCategories([
-          "All",
-          "Sofa",
-          "Chair",
-          "Table",
-          "Bed",
-          "Desk",
-          "Storage",
-          "Decor",
-        ]);
+        // If DB fails, fallback to just All, no static shapes
+        setCategories(["All"]);
       } finally {
         setLoading(false);
       }
@@ -49,12 +51,10 @@ const Navbar = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Navigate to furniture listing with search
     navigate("/furniture");
   };
 
   const handleLogout = () => {
-    // Clear all tokens and user data
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("adminToken");
@@ -104,7 +104,6 @@ const Navbar = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
             <Link
               to="/furniture"
               className="text-foreground hover:text-primary transition-colors">
@@ -174,7 +173,7 @@ const Navbar = () => {
             {state.isAuthenticated ? (
               <div className="flex items-center space-x-2">
                 {/* Admin Panel Button */}
-                {state.userType === 'admin' && (
+                {state.userType === "admin" && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -183,7 +182,7 @@ const Navbar = () => {
                     <Shield className="w-4 h-4" />
                   </Button>
                 )}
-                
+
                 {/* User Menu Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -193,27 +192,29 @@ const Navbar = () => {
                       className="flex items-center space-x-2">
                       <User className="w-5 h-5" />
                       <span className="hidden md:inline">
-                        {state.userType === 'admin' 
-                          ? state.admin?.username || 'Admin'
-                          : state.user?.firstName || 'User'
-                        }
+                        {state.userType === "admin"
+                          ? state.admin?.username || "Admin"
+                          : state.user?.firstName || "User"}
                       </span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    {state.userType === 'admin' ? (
+                    {state.userType === "admin" ? (
                       <>
                         <DropdownMenuItem onClick={() => navigate("/admin")}>
                           <Settings className="w-4 h-4 mr-2" />
                           Admin Dashboard
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate("/admin/items")}>
+                        <DropdownMenuItem
+                          onClick={() => navigate("/admin/items")}>
                           Manage Items
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate("/admin/categories")}>
+                        <DropdownMenuItem
+                          onClick={() => navigate("/admin/categories")}>
                           Manage Categories
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate("/admin/orders")}>
+                        <DropdownMenuItem
+                          onClick={() => navigate("/admin/orders")}>
                           Manage Orders
                         </DropdownMenuItem>
                       </>
@@ -222,7 +223,8 @@ const Navbar = () => {
                         <DropdownMenuItem onClick={() => navigate("/profile")}>
                           Profile
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                        <DropdownMenuItem
+                          onClick={() => navigate("/dashboard")}>
                           Dashboard
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => navigate("/orders")}>

@@ -25,7 +25,6 @@ app.use(passport.initialize());
 
 app.use("/", router);
 
-
 app.listen(config.port, async () => {
   await connectDB();
   // await syncIndexes();

@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -52,7 +51,6 @@ const CategoryManagement = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
     isActive: true,
   });
   const { toast } = useToast();
@@ -87,7 +85,7 @@ const CategoryManagement = () => {
 
       setCategories([...categories, response.category]);
       setIsAddDialogOpen(false);
-      setFormData({ name: "", description: "", isActive: true });
+      setFormData({ name: "", isActive: true });
 
       toast({
         title: "Category Added",
@@ -121,7 +119,7 @@ const CategoryManagement = () => {
 
       setIsEditDialogOpen(false);
       setEditingCategory(null);
-      setFormData({ name: "", description: "", isActive: true });
+      setFormData({ name: "", isActive: true });
 
       toast({
         title: "Category Updated",
@@ -158,16 +156,13 @@ const CategoryManagement = () => {
     setEditingCategory(category);
     setFormData({
       name: category.name,
-      description: category.description,
       isActive: category.isActive,
     });
     setIsEditDialogOpen(true);
   };
 
-  const filteredCategories = categories.filter(
-    (category) =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -214,17 +209,6 @@ const CategoryManagement = () => {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   placeholder="Enter category name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  placeholder="Enter category description"
                 />
               </div>
             </div>
@@ -274,7 +258,6 @@ const CategoryManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
                 <TableHead>Items</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created</TableHead>
@@ -285,9 +268,6 @@ const CategoryManagement = () => {
               {filteredCategories.map((category) => (
                 <TableRow key={category._id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="max-w-xs truncate">
-                    {category.description}
-                  </TableCell>
                   <TableCell>{category.itemCount}</TableCell>
                   <TableCell>
                     <Badge
@@ -357,17 +337,6 @@ const CategoryManagement = () => {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 placeholder="Enter category name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Enter category description"
               />
             </div>
           </div>

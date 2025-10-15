@@ -29,18 +29,15 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useApp } from "@/contexts/AppContext";
-import { categoryService } from "@/services/categoryService";
+import { categoryService, Category } from "@/services/categoryService";
 import { itemService, Item } from "@/services/itemService";
-import sofaImage from "@/assets/sofa-premium.jpg";
-import deskImage from "@/assets/desk-walnut.jpg";
-import chairImage from "@/assets/chair-office.jpg";
 
 const FurnitureListing = () => {
   const { state, dispatch } = useApp();
   const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("newest");
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,25 +46,15 @@ const FurnitureListing = () => {
       try {
         // Fetch categories
         const categoriesResponse = await categoryService.getCategories();
-        const categoryNames = categoriesResponse.map((cat) => cat.name);
-        setCategories(["All", ...categoryNames]);
+        setCategories(categoriesResponse);
 
         // Fetch items
         const itemsResponse = await itemService.getItems();
         setItems(itemsResponse.items);
       } catch (error) {
         console.error("Failed to fetch data:", error);
-        // Fallback to default categories
-        setCategories([
-          "All",
-          "Sofa",
-          "Chair",
-          "Table",
-          "Bed",
-          "Desk",
-          "Storage",
-          "Decor",
-        ]);
+        // Fallback to empty on error
+        setCategories([]);
         setItems([]);
       } finally {
         setLoading(false);
@@ -80,15 +67,24 @@ const FurnitureListing = () => {
 
   // Get furniture with images
   const furnitureWithImages = useMemo(() => {
-    return items.map((item) => ({
-      ...item,
-      id: item._id,
-      title: item.name,
-      type: item.saleType,
-      price: item.price || 0,
-      rentPrice: item.rentPrice || 0,
-      images: item.images && item.images.length > 0 ? item.images : ["/placeholder.svg"],
-    }));
+    return items.map((item) => {
+      const imageUrls = Array.isArray(item.images)
+        ? item.images
+            .map((img: any) => (typeof img === "string" ? img : img.url))
+            .filter(Boolean)
+        : [];
+
+      return {
+        ...item,
+        id: item._id,
+        title: item.name,
+        type: item.saleType === "sale" ? "sell" : item.saleType,
+        price: item.price || 0,
+        rentPrice: item.rentPrice || 0,
+        depositPrice: item.depositPrice || 0,
+        images: imageUrls.length > 0 ? imageUrls : ["/placeholder.svg"],
+      };
+    });
   }, [items]);
 
   // Filter and sort furniture
@@ -108,7 +104,8 @@ const FurnitureListing = () => {
       // Category filter
       if (
         state.selectedCategory !== "all" &&
-        item.category?.name?.toLowerCase() !== state.selectedCategory.toLowerCase()
+        item.category?.name?.toLowerCase() !==
+          state.selectedCategory.toLowerCase()
       ) {
         return false;
       }
@@ -129,14 +126,14 @@ const FurnitureListing = () => {
     });
 
     // Sort
-    filtered.sort((a, b) => {
+    filtered.sort((a: any, b: any) => {
       switch (sortBy) {
         case "price-low":
           return (a.price || a.rentPrice || 0) - (b.price || b.rentPrice || 0);
         case "price-high":
           return (b.price || b.rentPrice || 0) - (a.price || a.rentPrice || 0);
         case "rating":
-          return b.rating - a.rating;
+          return 0;
         default:
           return 0; // newest
       }
@@ -176,7 +173,8 @@ const FurnitureListing = () => {
             Furniture Collection
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover our curated selection of premium furniture for every space and style
+            Discover our curated selection of premium furniture for every space
+            and style
           </p>
         </div>
 
@@ -218,9 +216,12 @@ const FurnitureListing = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
                     {categories.map((category) => (
-                      <SelectItem key={category} value={category.toLowerCase()}>
-                        {category}
+                      <SelectItem
+                        key={category._id}
+                        value={category.name.toLowerCase()}>
+                        {category.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -371,12 +372,10 @@ const FurnitureListing = () => {
                     <div className="flex items-center gap-2 mb-3">
                       <div className="flex items-center">
                         <Star className="w-4 h-4 fill-accent text-accent" />
-                        <span className="text-sm font-medium ml-1">
-                          {furniture.rating}
-                        </span>
+                        <span className="text-sm font-medium ml-1">0</span>
                       </div>
                       <span className="text-muted-foreground text-sm">
-                        ({furniture.reviewCount} reviews)
+                        (0 reviews)
                       </span>
                     </div>
 
@@ -397,9 +396,9 @@ const FurnitureListing = () => {
                             <span className="text-lg font-bold text-accent">
                               ₹{furniture.rentPrice}/mo
                             </span>
-                            {furniture.deposit && (
+                            {furniture.depositPrice && (
                               <span className="text-sm text-muted-foreground block">
-                                + ₹{furniture.deposit} deposit
+                                + ₹{furniture.depositPrice} deposit
                               </span>
                             )}
                           </div>
