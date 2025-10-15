@@ -49,7 +49,7 @@ export const list = async (req, res) => {
 
     const items = await Item.find(filter)
       .populate("category", "name description")
-      .populate("images", "url altText")
+      .populate("images", "url altText filename originalName mimeType")
       .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -77,7 +77,7 @@ export const get = async (req, res) => {
 
     const item = await Item.findById(id)
       .populate("category", "name description")
-      .populate("images", "url altText");
+      .populate("images", "url altText filename originalName mimeType");
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });

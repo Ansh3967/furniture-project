@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Eye, Package, Calendar, DollarSign, User } from 'lucide-react';
+import { Search, Filter, Eye, Package, Calendar, DollarSign, User, Edit, Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { adminService, Order } from '@/services/adminService';
 
@@ -57,6 +57,14 @@ const OrderManagement = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [editForm, setEditForm] = useState({
+    status: '',
+    paymentStatus: '',
+    notes: '',
+    trackingNumber: '',
+    shippingAddress: ''
+  });
   const { toast } = useToast();
 
   // Load orders from API
@@ -103,6 +111,81 @@ const OrderManagement = () => {
       toast({
         title: "Error",
         description: "Failed to update order status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Start editing an order
+  const startEditing = (order: Order) => {
+    setEditingOrder(order);
+    setEditForm({
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      notes: order.notes || '',
+      trackingNumber: order.trackingNumber || '',
+      shippingAddress: order.shippingAddress
+    });
+  };
+
+  // Cancel editing
+  const cancelEditing = () => {
+    setEditingOrder(null);
+    setEditForm({
+      status: '',
+      paymentStatus: '',
+      notes: '',
+      trackingNumber: '',
+      shippingAddress: ''
+    });
+  };
+
+  // Save order edits
+  const saveOrderEdits = async () => {
+    if (!editingOrder) return;
+
+    try {
+      // Update order status if changed
+      if (editForm.status !== editingOrder.status) {
+        await adminService.updateOrderStatus(editingOrder._id, editForm.status, editForm.notes);
+      }
+
+      // Update payment status if changed
+      if (editForm.paymentStatus !== editingOrder.paymentStatus) {
+        await adminService.updatePaymentStatus(editingOrder._id, editForm.paymentStatus);
+      }
+
+      // Add tracking number if provided
+      if (editForm.trackingNumber && editForm.trackingNumber !== editingOrder.trackingNumber) {
+        await adminService.addTrackingNumber(editingOrder._id, editForm.trackingNumber);
+      }
+
+      // Update local state
+      setOrders(orders.map(order => 
+        order._id === editingOrder._id 
+          ? { 
+              ...order, 
+              status: editForm.status as any,
+              paymentStatus: editForm.paymentStatus as any,
+              notes: editForm.notes,
+              trackingNumber: editForm.trackingNumber,
+              shippingAddress: editForm.shippingAddress,
+              updatedAt: new Date().toISOString() 
+            }
+          : order
+      ));
+
+      toast({
+        title: "Order Updated",
+        description: "Order has been updated successfully.",
+      });
+
+      cancelEditing();
+    } catch (error) {
+      console.error('Failed to update order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update order. Please try again.",
         variant: "destructive",
       });
     }
@@ -264,9 +347,30 @@ const OrderManagement = () => {
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <Badge className={getStatusColor(order.status)}>
-                        {order.status}
-                      </Badge>
+                      {editingOrder?._id === order._id ? (
+                        <Select
+                          value={editForm.status}
+                          onValueChange={(value) => setEditForm({...editForm, status: value})}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="confirmed">Confirmed</SelectItem>
+                            <SelectItem value="processing">Processing</SelectItem>
+                            <SelectItem value="shipped">Shipped</SelectItem>
+                            <SelectItem value="delivered">Delivered</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="returned">Returned</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge className={getStatusColor(order.status)}>
+                          {order.status}
+                        </Badge>
+                      )}
                       <div className="flex items-center space-x-1">
                         <Package className="h-3 w-3 text-muted-foreground" />
                         <span className="text-xs text-muted-foreground">{order.type}</span>
@@ -274,9 +378,26 @@ const OrderManagement = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getPaymentStatusColor(order.paymentStatus)}>
-                      {order.paymentStatus}
-                    </Badge>
+                    {editingOrder?._id === order._id ? (
+                      <Select
+                        value={editForm.paymentStatus}
+                        onValueChange={(value) => setEditForm({...editForm, paymentStatus: value})}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                          <SelectItem value="failed">Failed</SelectItem>
+                          <SelectItem value="refunded">Refunded</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge className={getPaymentStatusColor(order.paymentStatus)}>
+                        {order.paymentStatus}
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
@@ -293,21 +414,34 @@ const OrderManagement = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Select
-                        value={order.status}
-                        onValueChange={(value) => handleStatusUpdate(order._id, value)}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="processing">Processing</SelectItem>
-                          <SelectItem value="shipped">Shipped</SelectItem>
-                          <SelectItem value="delivered">Delivered</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {editingOrder?._id === order._id ? (
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={saveOrderEdits}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            <Save className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={cancelEditing}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => startEditing(order)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -423,6 +557,159 @@ const OrderManagement = () => {
             </Button>
             <Button>
               Update Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Comprehensive Order Editing Dialog */}
+      <Dialog open={!!editingOrder} onOpenChange={cancelEditing}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Order - {editingOrder?.orderNumber}</DialogTitle>
+            <DialogDescription>
+              Update order details, status, and tracking information.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingOrder && (
+            <div className="space-y-6">
+              {/* Order Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Order Number</label>
+                  <p className="text-sm text-muted-foreground">{editingOrder.orderNumber}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Customer</label>
+                  <p className="text-sm text-muted-foreground">
+                    {editingOrder.user.firstName} {editingOrder.user.lastName}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Email</label>
+                  <p className="text-sm text-muted-foreground">{editingOrder.user.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Phone</label>
+                  <p className="text-sm text-muted-foreground">{editingOrder.user.phone}</p>
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Order Items</label>
+                <div className="space-y-2">
+                  {editingOrder.items.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Quantity: {item.quantity} | Type: {item.type}
+                        </p>
+                      </div>
+                      <p className="font-medium">${item.price}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Editable Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Order Status</label>
+                  <Select
+                    value={editForm.status}
+                    onValueChange={(value) => setEditForm({...editForm, status: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="returned">Returned</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Payment Status</label>
+                  <Select
+                    value={editForm.paymentStatus}
+                    onValueChange={(value) => setEditForm({...editForm, paymentStatus: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
+                      <SelectItem value="refunded">Refunded</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Tracking Number</label>
+                  <Input
+                    value={editForm.trackingNumber}
+                    onChange={(e) => setEditForm({...editForm, trackingNumber: e.target.value})}
+                    placeholder="Enter tracking number"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Payment Method</label>
+                  <p className="text-sm text-muted-foreground">{editingOrder.paymentMethod}</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Shipping Address</label>
+                <Input
+                  value={editForm.shippingAddress}
+                  onChange={(e) => setEditForm({...editForm, shippingAddress: e.target.value})}
+                  placeholder="Enter shipping address"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Notes</label>
+                <Input
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
+                  placeholder="Add notes about this order"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Total Amount</label>
+                  <p className="text-lg font-bold">${editingOrder.total.toLocaleString()}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Order Date</label>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(editingOrder.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelEditing}>
+              Cancel
+            </Button>
+            <Button onClick={saveOrderEdits}>
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -23,7 +23,7 @@ export const add = {
       otherwise: Joi.optional(),
     }),
   depositPrice: Joi.number().min(0).default(0),
-  images: Joi.array().items(Joi.string()).default([]),
+  images: Joi.array().items(Joi.string().hex().length(24)).default([]),
   specifications: Joi.object({
     dimensions: Joi.object({
       length: Joi.number(),
@@ -58,7 +58,7 @@ export const edit = {
   price: Joi.number().min(0),
   rentPrice: Joi.number().min(0),
   depositPrice: Joi.number().min(0),
-  images: Joi.array().items(Joi.string()),
+  images: Joi.array().items(Joi.string().hex().length(24)),
   specifications: Joi.object({
     dimensions: Joi.object({
       length: Joi.number(),

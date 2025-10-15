@@ -29,7 +29,6 @@ export const getOrderById = {
 };
 
 export const updateOrderStatus = {
-  id: Joi.string().hex().length(24).required(),
   status: Joi.string()
     .valid(
       "pending",
@@ -46,14 +45,12 @@ export const updateOrderStatus = {
 };
 
 export const updatePaymentStatus = {
-  id: Joi.string().hex().length(24).required(),
   paymentStatus: Joi.string()
     .valid("pending", "paid", "failed", "refunded")
     .required(),
 };
 
 export const addTrackingNumber = {
-  id: Joi.string().hex().length(24).required(),
   trackingNumber: Joi.string().required(),
 };
 

@@ -32,6 +32,13 @@ import { useApp } from "@/contexts/AppContext";
 import { categoryService, Category } from "@/services/categoryService";
 import { itemService, Item } from "@/services/itemService";
 
+// Import sample images for fallback
+import chairOffice from "@/assets/chair-office.jpg";
+import deskWalnut from "@/assets/desk-walnut.jpg";
+import heroLivingRoom from "@/assets/hero-living-room.jpg";
+import heroOffice from "@/assets/hero-office.jpg";
+import sofaPremium from "@/assets/sofa-premium.jpg";
+
 const FurnitureListing = () => {
   const { state, dispatch } = useApp();
   const [searchParams] = useSearchParams();
@@ -67,12 +74,20 @@ const FurnitureListing = () => {
 
   // Get furniture with images
   const furnitureWithImages = useMemo(() => {
-    return items.map((item) => {
+    // Array of fallback images
+    const fallbackImages = [chairOffice, deskWalnut, heroLivingRoom, heroOffice, sofaPremium];
+    
+    return items.map((item, index) => {
       const imageUrls = Array.isArray(item.images)
         ? item.images
             .map((img: any) => (typeof img === "string" ? img : img.url))
             .filter(Boolean)
         : [];
+
+      // Use fallback images if no images are available
+      const finalImages = imageUrls.length > 0 
+        ? imageUrls 
+        : [fallbackImages[index % fallbackImages.length]];
 
       return {
         ...item,
@@ -88,7 +103,7 @@ const FurnitureListing = () => {
         sellerId: 'admin', // Since items are created by admin
         rating: 0, // Default rating
         reviewCount: 0, // Default review count
-        images: imageUrls.length > 0 ? imageUrls : ["/placeholder.svg"],
+        images: finalImages,
       };
     });
   }, [items]);

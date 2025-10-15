@@ -8,6 +8,9 @@ import { categoryService, Category } from '@/services/categoryService';
 import { itemService, Item } from '@/services/itemService';
 import heroLivingRoom from '@/assets/hero-living-room.jpg';
 import heroOffice from '@/assets/hero-office.jpg';
+import chairOffice from '@/assets/chair-office.jpg';
+import deskWalnut from '@/assets/desk-walnut.jpg';
+import sofaPremium from '@/assets/sofa-premium.jpg';
 
 const Index = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -233,21 +236,22 @@ const Index = () => {
                 <div key={index} className="bg-gray-200 rounded-lg h-80 animate-pulse" />
               ))
             ) : featuredItems.length > 0 ? (
-              featuredItems.slice(0, 4).map((item) => (
+              featuredItems.slice(0, 4).map((item, index) => {
+                // Fallback images array
+                const fallbackImages = [chairOffice, deskWalnut, heroLivingRoom, heroOffice, sofaPremium];
+                const displayImage = item.images && item.images.length > 0 
+                  ? item.images[0] 
+                  : fallbackImages[index % fallbackImages.length];
+                
+                return (
                 <Link key={item._id} to={`/furniture/${item._id}`}>
                   <Card className="group hover:shadow-medium transition-shadow">
                     <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
-                      {item.images && item.images.length > 0 ? (
-                        <img
-                          src={item.images[0]}
-                          alt={item.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          No Image
-                        </div>
-                      )}
+                      <img
+                        src={displayImage}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
                     </div>
                     <CardContent className="p-4">
                       <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.name}</h3>
@@ -274,7 +278,8 @@ const Index = () => {
                     </CardContent>
                   </Card>
                 </Link>
-              ))
+                );
+              })
             ) : (
               <div className="col-span-full text-center py-12">
                 <p className="text-muted-foreground">No featured items available at the moment.</p>

@@ -48,7 +48,10 @@ const itemSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-    images: [String],
+    images: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Media"
+    }],
     specifications: {
       dimensions: {
         length: { type: Number },

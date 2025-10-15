@@ -1,5 +1,6 @@
 import Item from "../../../models/item.model.js";
 import Category from "../../../models/category.model.js";
+import Media from "../../../models/media.model.js";
 import mongoose from "mongoose";
 
 // List all items with filtering and pagination
@@ -35,7 +36,7 @@ export const list = async (req, res) => {
 
     const items = await Item.find(filter)
       .populate("category", "name")
-      .populate("images", "url altText")
+      .populate("images", "url altText filename originalName mimeType")
       .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -83,11 +84,38 @@ export const get = async (req, res) => {
 export const add = async (req, res) => {
   try {
     const itemData = req.body;
+    const adminId = req.admin._id;
 
-    // Handle uploaded images
+    // Handle uploaded images - create media records
     if (req.files && req.files.length > 0) {
-      const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
-      itemData.images = imageUrls;
+      const mediaIds = [];
+      
+      for (const file of req.files) {
+        // Create media record for each uploaded file
+        const mediaData = {
+          filename: file.filename,
+          originalName: file.originalname,
+          url: `/uploads/${file.filename}`,
+          mimeType: file.mimetype,
+          size: file.size,
+          uploadedBy: adminId,
+          altText: req.body.altText || "",
+          tags: req.body.tags ? req.body.tags.split(",").map(tag => tag.trim()) : [],
+        };
+
+        // Add image metadata if it's an image
+        if (file.mimetype.startsWith("image/")) {
+          mediaData.metadata = {
+            format: file.mimetype.split("/")[1],
+          };
+        }
+
+        const media = new Media(mediaData);
+        await media.save();
+        mediaIds.push(media._id);
+      }
+      
+      itemData.images = mediaIds;
     }
 
     // Validate category exists
@@ -103,7 +131,7 @@ export const add = async (req, res) => {
 
     const populatedItem = await Item.findById(newItem._id)
       .populate("category", "name")
-      .populate("images", "url altText");
+      .populate("images", "url altText filename originalName mimeType");
 
     res.status(201).json({
       message: "Item created successfully",
@@ -123,11 +151,38 @@ export const edit = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const adminId = req.admin._id;
 
-    // Handle uploaded images
+    // Handle uploaded images - create media records
     if (req.files && req.files.length > 0) {
-      const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
-      updateData.images = imageUrls;
+      const mediaIds = [];
+      
+      for (const file of req.files) {
+        // Create media record for each uploaded file
+        const mediaData = {
+          filename: file.filename,
+          originalName: file.originalname,
+          url: `/uploads/${file.filename}`,
+          mimeType: file.mimetype,
+          size: file.size,
+          uploadedBy: adminId,
+          altText: req.body.altText || "",
+          tags: req.body.tags ? req.body.tags.split(",").map(tag => tag.trim()) : [],
+        };
+
+        // Add image metadata if it's an image
+        if (file.mimetype.startsWith("image/")) {
+          mediaData.metadata = {
+            format: file.mimetype.split("/")[1],
+          };
+        }
+
+        const media = new Media(mediaData);
+        await media.save();
+        mediaIds.push(media._id);
+      }
+      
+      updateData.images = mediaIds;
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
