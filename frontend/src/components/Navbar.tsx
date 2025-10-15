@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ShoppingCart, User, Menu, Heart, LogOut } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Heart, LogOut, Settings, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -54,7 +54,12 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
+    // Clear all tokens and user data
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
+    localStorage.removeItem("userType");
     dispatch({ type: "LOGOUT" });
     navigate("/");
   };
@@ -165,35 +170,74 @@ const Navbar = () => {
               )}
             </Button>
 
-            {/* User Menu */}
+            {/* User/Admin Menu */}
             {state.isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              <div className="flex items-center space-x-2">
+                {/* Admin Panel Button */}
+                {state.userType === 'admin' && (
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="flex items-center space-x-2">
-                    <User className="w-5 h-5" />
-                    <span className="hidden md:inline">{state.user?.name}</span>
+                    onClick={() => navigate("/admin")}
+                    className="bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-blue-700 border-blue-200 hover:border-blue-300">
+                    <Shield className="w-4 h-4" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                    Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/orders")}>
-                    Orders
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+                
+                {/* User Menu Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center space-x-2">
+                      <User className="w-5 h-5" />
+                      <span className="hidden md:inline">
+                        {state.userType === 'admin' 
+                          ? state.admin?.username || 'Admin'
+                          : state.user?.firstName || 'User'
+                        }
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {state.userType === 'admin' ? (
+                      <>
+                        <DropdownMenuItem onClick={() => navigate("/admin")}>
+                          <Settings className="w-4 h-4 mr-2" />
+                          Admin Dashboard
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate("/admin/items")}>
+                          Manage Items
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate("/admin/categories")}>
+                          Manage Categories
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate("/admin/orders")}>
+                          Manage Orders
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <>
+                        <DropdownMenuItem onClick={() => navigate("/profile")}>
+                          Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                          Dashboard
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate("/orders")}>
+                          Orders
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <div className="flex items-center space-x-2">
                 <Button

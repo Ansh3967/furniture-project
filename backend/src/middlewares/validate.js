@@ -2,13 +2,36 @@ import Joi from "joi";
 
 const validate = (schema) => {
   return (req, res, next) => {
-    const data = { ...req.body, ...req.params, ...req.query };
-    const { error } = Joi.object(schema).validate(data, { abortEarly: false });
+    const errors = [];
 
-    if (error) {
+    // Validate body if schema.body exists
+    if (schema.body) {
+      const { error } = schema.body.validate(req.body, { abortEarly: false });
+      if (error) {
+        errors.push(...error.details.map(detail => detail.message));
+      }
+    }
+
+    // Validate params if schema.params exists
+    if (schema.params) {
+      const { error } = schema.params.validate(req.params, { abortEarly: false });
+      if (error) {
+        errors.push(...error.details.map(detail => detail.message));
+      }
+    }
+
+    // Validate query if schema.query exists
+    if (schema.query) {
+      const { error } = schema.query.validate(req.query, { abortEarly: false });
+      if (error) {
+        errors.push(...error.details.map(detail => detail.message));
+      }
+    }
+
+    if (errors.length > 0) {
       return res.status(400).json({
         error: "Validation error",
-        details: error.details.map((detail) => detail.message),
+        details: errors,
       });
     }
     next();

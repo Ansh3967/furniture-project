@@ -199,11 +199,11 @@ export const getOrderStats = async (req, res) => {
 
     const totalRevenue = await Order.aggregate([
       { $match: { paymentStatus: "paid" } },
-      { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+      { $group: { _id: null, total: { $sum: "$total" } } },
     ]);
 
     const ordersByType = await Order.aggregate([
-      { $group: { _id: "$orderType", count: { $sum: 1 } } },
+      { $group: { _id: "$type", count: { $sum: 1 } } },
     ]);
 
     const ordersByStatus = await Order.aggregate([

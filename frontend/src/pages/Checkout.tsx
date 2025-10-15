@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
 import { useToast } from '@/hooks/use-toast';
+import { orderService, CreateOrderData } from '@/services/orderService';
 
 const Checkout = () => {
   const { state, dispatch } = useApp();
@@ -35,32 +36,55 @@ const Checkout = () => {
     e.preventDefault();
     setIsProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
-      // Create order
-      const order = {
-        id: Math.random().toString(36).substr(2, 9),
-        userId: state.user?.id || 'guest',
-        items: state.cart,
+    try {
+      // Prepare order data
+      const orderData: CreateOrderData = {
+        items: state.cart.map(item => ({
+          furnitureId: item.furniture.id,
+          name: item.furniture.title,
+          quantity: item.quantity,
+          price: item.type === 'sell' ? item.furniture.price! : item.furniture.rentPrice!,
+          type: item.type
+        })),
         total,
-        status: 'completed' as const,
-        type: state.cart.some(item => item.type === 'rent') ? 'rental' as const : 'purchase' as const,
-        createdAt: new Date().toISOString(),
-        dueDate: state.cart.some(item => item.type === 'rent') ? 
-          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : undefined
+        type: state.cart.some(item => item.type === 'rent') ? 'rental' : 'purchase',
+        shippingAddress: `${state.user?.firstName} ${state.user?.lastName}, ${state.user?.email}`,
+        paymentMethod
       };
 
-      dispatch({ type: 'ADD_ORDER', payload: order });
+      // Create order via API
+      const response = await orderService.createOrder(orderData);
+      
+      // Add order to context
+      dispatch({ type: 'ADD_ORDER', payload: {
+        id: response.order._id,
+        userId: response.order.userId,
+        items: state.cart,
+        total: response.order.total,
+        status: 'pending' as const,
+        type: response.order.type,
+        createdAt: response.order.createdAt
+      }});
+
+      // Clear cart
       dispatch({ type: 'CLEAR_CART' });
 
       toast({
-        title: 'Payment Successful!',
-        description: 'Your order has been placed successfully.',
+        title: "Order Placed Successfully!",
+        description: `Your order #${response.order.orderNumber} has been placed and will be processed soon.`,
       });
 
       navigate('/orders');
+    } catch (error: any) {
+      console.error('Order creation failed:', error);
+      toast({
+        title: "Order Failed",
+        description: error.response?.data?.message || "Failed to place order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsProcessing(false);
-    }, 2000);
+    }
   };
 
   return (
@@ -149,7 +173,7 @@ const Checkout = () => {
                     disabled={isProcessing}
                   >
                     <Lock className="w-4 h-4 mr-2" />
-                    {isProcessing ? 'Processing Payment...' : `Pay $${total}`}
+                    {isProcessing ? 'Processing Payment...' : `Pay ₹${total}`}
                   </Button>
                 </form>
               </CardContent>
@@ -174,7 +198,7 @@ const Checkout = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-medium">
-                          ${(item.type === 'sell' ? item.furniture.price! : item.furniture.rentPrice!) * item.quantity}
+                          ₹{(item.type === 'sell' ? item.furniture.price! : item.furniture.rentPrice!) * item.quantity}
                         </p>
                       </div>
                     </div>
@@ -186,17 +210,17 @@ const Checkout = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
-                    <span>${subtotal}</span>
+                    <span>₹{subtotal}</span>
                   </div>
                   {deposits > 0 && (
                     <div className="flex justify-between">
                       <span>Security Deposits:</span>
-                      <span>${deposits}</span>
+                      <span>₹{deposits}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span>Shipping:</span>
-                    <span>{shipping === 0 ? 'Free' : `$${shipping}`}</span>
+                    <span>{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
                   </div>
                 </div>
 
@@ -204,7 +228,7 @@ const Checkout = () => {
 
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total:</span>
-                  <span>${total}</span>
+                  <span>₹{total}</span>
                 </div>
               </CardContent>
             </Card>

@@ -29,56 +29,27 @@ const MediaManagement = () => {
   const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
   const { toast } = useToast();
 
-  // Sample data - replace with actual API calls
+  // Load media files from API
   useEffect(() => {
     const loadMediaFiles = async () => {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setMediaFiles([
-          {
-            _id: '1',
-            type: 'image',
-            url: '/uploads/sofa-1.jpg',
-            filename: 'sofa-1.jpg',
-            fileSize: 2048576,
-            userType: 'admin',
-            createdBy: 'admin',
-            createdAt: '2024-01-15'
-          },
-          {
-            _id: '2',
-            type: 'image',
-            url: '/uploads/desk-1.jpg',
-            filename: 'desk-1.jpg',
-            fileSize: 1536000,
-            userType: 'admin',
-            createdBy: 'admin',
-            createdAt: '2024-01-14'
-          },
-          {
-            _id: '3',
-            type: 'video',
-            url: '/uploads/chair-demo.mp4',
-            filename: 'chair-demo.mp4',
-            fileSize: 15728640,
-            userType: 'admin',
-            createdBy: 'admin',
-            createdAt: '2024-01-13'
-          },
-          {
-            _id: '4',
-            type: 'image',
-            url: '/uploads/table-1.jpg',
-            filename: 'table-1.jpg',
-            fileSize: 1024000,
-            userType: 'user',
-            createdBy: 'user123',
-            createdAt: '2024-01-12'
-          }
-        ]);
+      try {
+        // TODO: Replace with actual API call
+        // const response = await adminService.getMediaFiles();
+        // setMediaFiles(response.mediaFiles);
+        
+        // For now, show empty state
+        setMediaFiles([]);
+      } catch (error) {
+        console.error('Failed to load media files:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load media files. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
     loadMediaFiles();
@@ -322,19 +293,32 @@ const MediaManagement = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>File</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Size</TableHead>
-                <TableHead>Uploaded By</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredFiles.map((file) => (
+          {filteredFiles.length === 0 ? (
+            <div className="text-center py-12">
+              <ImageIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Media Files</h3>
+              <p className="text-muted-foreground mb-4">
+                Upload your first media file to get started
+              </p>
+              <Button onClick={() => setIsUploadDialogOpen(true)}>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Files
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>File</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Uploaded By</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredFiles.map((file) => (
                 <TableRow key={file._id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
@@ -399,9 +383,10 @@ const MediaManagement = () => {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

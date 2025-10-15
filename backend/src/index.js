@@ -25,10 +25,9 @@ app.use(passport.initialize());
 
 app.use("/", router);
 
-const PORT = config.port || 5000;
 
-app.listen(PORT, async () => {
+app.listen(config.port, async () => {
   await connectDB();
   // await syncIndexes();
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${config.port}`);
 });

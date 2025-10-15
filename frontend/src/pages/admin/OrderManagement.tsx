@@ -8,29 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Eye, Package, Calendar, DollarSign, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { orderService, Order } from '@/services/orderService';
 
-interface Order {
-  _id: string;
-  orderNumber: string;
-  customer: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-  items: Array<{
-    name: string;
-    quantity: number;
-    price: number;
-    type: 'sell' | 'rent';
-  }>;
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  type: 'purchase' | 'rental';
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
-  shippingAddress: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -42,74 +21,23 @@ const OrderManagement = () => {
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // Sample data - replace with actual API calls
+  // Load orders from API
   useEffect(() => {
     const loadOrders = async () => {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setOrders([
-          {
-            _id: '1',
-            orderNumber: 'ORD-2024-001',
-            customer: {
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-              phone: '+1 (555) 123-4567'
-            },
-            items: [
-              { name: 'Premium Leather Sofa', quantity: 1, price: 2499, type: 'sell' },
-              { name: 'Ergonomic Office Chair', quantity: 2, price: 599, type: 'sell' }
-            ],
-            total: 3697,
-            status: 'processing',
-            type: 'purchase',
-            paymentStatus: 'paid',
-            shippingAddress: '123 Main St, New York, NY 10001',
-            createdAt: '2024-01-15',
-            updatedAt: '2024-01-15'
-          },
-          {
-            _id: '2',
-            orderNumber: 'ORD-2024-002',
-            customer: {
-              name: 'Jane Smith',
-              email: 'jane.smith@example.com',
-              phone: '+1 (555) 234-5678'
-            },
-            items: [
-              { name: 'Walnut Executive Desk', quantity: 1, price: 89, type: 'rent' }
-            ],
-            total: 89,
-            status: 'pending',
-            type: 'rental',
-            paymentStatus: 'pending',
-            shippingAddress: '456 Oak Ave, Los Angeles, CA 90210',
-            createdAt: '2024-01-14',
-            updatedAt: '2024-01-14'
-          },
-          {
-            _id: '3',
-            orderNumber: 'ORD-2024-003',
-            customer: {
-              name: 'Bob Johnson',
-              email: 'bob.johnson@example.com',
-              phone: '+1 (555) 345-6789'
-            },
-            items: [
-              { name: 'Modern Coffee Table', quantity: 1, price: 399, type: 'sell' }
-            ],
-            total: 399,
-            status: 'delivered',
-            type: 'purchase',
-            paymentStatus: 'paid',
-            shippingAddress: '789 Pine St, Chicago, IL 60601',
-            createdAt: '2024-01-13',
-            updatedAt: '2024-01-13'
-          }
-        ]);
+      try {
+        const response = await orderService.getAllOrders();
+        setOrders(response.orders);
+      } catch (error) {
+        console.error('Failed to load orders:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load orders. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
     loadOrders();
@@ -117,6 +45,9 @@ const OrderManagement = () => {
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
+      await orderService.updateOrderStatus(orderId, newStatus);
+      
+      // Update local state
       setOrders(orders.map(order => 
         order._id === orderId 
           ? { ...order, status: newStatus as any, updatedAt: new Date().toISOString().split('T')[0] }
@@ -128,6 +59,7 @@ const OrderManagement = () => {
         description: `Order status has been updated to ${newStatus}.`,
       });
     } catch (error) {
+      console.error('Failed to update order status:', error);
       toast({
         title: "Error",
         description: "Failed to update order status. Please try again.",
@@ -418,8 +350,8 @@ const OrderManagement = () => {
                             <Badge variant="outline">{item.type}</Badge>
                           </TableCell>
                           <TableCell>{item.quantity}</TableCell>
-                          <TableCell>${item.price}</TableCell>
-                          <TableCell>${(item.price * item.quantity).toLocaleString()}</TableCell>
+                          <TableCell>₹{item.price}</TableCell>
+                          <TableCell>₹{(item.price * item.quantity).toLocaleString()}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -427,7 +359,7 @@ const OrderManagement = () => {
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold">Total:</span>
-                      <span className="text-lg font-semibold">${selectedOrder.total.toLocaleString()}</span>
+                      <span className="text-lg font-semibold">₹{selectedOrder.total.toLocaleString()}</span>
                     </div>
                   </div>
                 </CardContent>

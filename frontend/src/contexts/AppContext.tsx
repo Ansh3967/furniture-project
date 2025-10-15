@@ -87,18 +87,18 @@ type AppAction =
   | { type: 'DELETE_FURNITURE'; payload: string }
   | { type: 'ADD_ORDER'; payload: Order };
 
-// Sample furniture data
+// Sample furniture data with Indian context
 const sampleFurniture: Furniture[] = [
   {
     id: '1',
     title: 'Premium Leather Sofa',
-    description: 'Luxurious 3-seater leather sofa with premium craftsmanship',
+    description: 'Luxurious 3-seater leather sofa with premium craftsmanship and elegant design',
     category: 'Sofa',
     images: ['/placeholder.svg'],
     type: 'both',
-    price: 2499,
-    rentPrice: 199,
-    deposit: 500,
+    price: 24999,
+    rentPrice: 1999,
+    deposit: 5000,
     availability: true,
     sellerId: 'seller1',
     rating: 4.8,
@@ -106,14 +106,14 @@ const sampleFurniture: Furniture[] = [
   },
   {
     id: '2',
-    title: 'Walnut Executive Desk',
-    description: 'Professional walnut desk perfect for home office',
+    title: 'Teak Wood Executive Desk',
+    description: 'Professional teak wood desk perfect for home office with spacious drawers',
     category: 'Desk',
     images: ['/placeholder.svg'],
     type: 'both',
-    price: 1299,
-    rentPrice: 89,
-    deposit: 200,
+    price: 12999,
+    rentPrice: 899,
+    deposit: 2000,
     availability: true,
     sellerId: 'seller2',
     rating: 4.6,
@@ -122,15 +122,144 @@ const sampleFurniture: Furniture[] = [
   {
     id: '3',
     title: 'Ergonomic Office Chair',
-    description: 'High-back ergonomic chair with lumbar support',
+    description: 'High-back ergonomic chair with lumbar support and adjustable height',
     category: 'Chair',
     images: ['/placeholder.svg'],
     type: 'sell',
-    price: 599,
+    price: 5999,
     availability: true,
     sellerId: 'seller1',
     rating: 4.7,
     reviewCount: 32
+  },
+  {
+    id: '4',
+    title: 'Modern Dining Table',
+    description: 'Sleek glass-top dining table with chrome legs, seats 6 people comfortably',
+    category: 'Table',
+    images: ['/placeholder.svg'],
+    type: 'both',
+    price: 8999,
+    rentPrice: 799,
+    deposit: 1500,
+    availability: true,
+    sellerId: 'seller3',
+    rating: 4.5,
+    reviewCount: 15
+  },
+  {
+    id: '5',
+    title: 'Luxury King Size Bed',
+    description: 'Premium king size bed with upholstered headboard and storage drawers',
+    category: 'Bed',
+    images: ['/placeholder.svg'],
+    type: 'both',
+    price: 18999,
+    rentPrice: 1499,
+    deposit: 3000,
+    availability: true,
+    sellerId: 'seller2',
+    rating: 4.9,
+    reviewCount: 28
+  },
+  {
+    id: '6',
+    title: 'Vintage Bookshelf',
+    description: 'Antique-style wooden bookshelf with 5 shelves and glass doors',
+    category: 'Bookshelf',
+    images: ['/placeholder.svg'],
+    type: 'sell',
+    price: 4599,
+    availability: true,
+    sellerId: 'seller4',
+    rating: 4.3,
+    reviewCount: 12
+  },
+  {
+    id: '7',
+    title: 'Modern Coffee Table',
+    description: 'Contemporary coffee table with marble top and gold metal legs',
+    category: 'Table',
+    images: ['/placeholder.svg'],
+    type: 'both',
+    price: 6999,
+    rentPrice: 599,
+    deposit: 1200,
+    availability: true,
+    sellerId: 'seller1',
+    rating: 4.4,
+    reviewCount: 19
+  },
+  {
+    id: '8',
+    title: 'Comfortable Recliner',
+    description: 'Premium leather recliner with massage function and cup holders',
+    category: 'Chair',
+    images: ['/placeholder.svg'],
+    type: 'both',
+    price: 12999,
+    rentPrice: 999,
+    deposit: 2500,
+    availability: true,
+    sellerId: 'seller3',
+    rating: 4.7,
+    reviewCount: 21
+  },
+  {
+    id: '9',
+    title: 'Storage Ottoman',
+    description: 'Multi-functional storage ottoman with hidden compartment and soft cushion',
+    category: 'Storage',
+    images: ['/placeholder.svg'],
+    type: 'sell',
+    price: 2999,
+    availability: true,
+    sellerId: 'seller4',
+    rating: 4.2,
+    reviewCount: 8
+  },
+  {
+    id: '10',
+    title: 'Dining Chair Set',
+    description: 'Set of 4 modern dining chairs with comfortable upholstery',
+    category: 'Chair',
+    images: ['/placeholder.svg'],
+    type: 'both',
+    price: 3999,
+    rentPrice: 399,
+    deposit: 800,
+    availability: true,
+    sellerId: 'seller2',
+    rating: 4.6,
+    reviewCount: 16
+  },
+  {
+    id: '11',
+    title: 'Luxury Wardrobe',
+    description: 'Spacious 3-door wardrobe with mirror and multiple compartments',
+    category: 'Wardrobe',
+    images: ['/placeholder.svg'],
+    type: 'both',
+    price: 15999,
+    rentPrice: 1299,
+    deposit: 3200,
+    availability: true,
+    sellerId: 'seller1',
+    rating: 4.8,
+    reviewCount: 25
+  },
+  {
+    id: '12',
+    title: 'Gaming Desk Setup',
+    description: 'Professional gaming desk with RGB lighting and cable management',
+    category: 'Desk',
+    images: ['/placeholder.svg'],
+    type: 'sell',
+    price: 7999,
+    availability: true,
+    sellerId: 'seller3',
+    rating: 4.9,
+    reviewCount: 35
   }
 ];
 
@@ -163,7 +292,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     
     case 'ADMIN_LOGIN':
-      localStorage.setItem('admin', JSON.stringify(action.payload));
+      localStorage.setItem('adminUser', JSON.stringify(action.payload));
       localStorage.setItem('userType', 'admin');
       return {
         ...state,
@@ -175,7 +304,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
     
     case 'LOGOUT':
       localStorage.removeItem('user');
+      localStorage.removeItem('token');
       localStorage.removeItem('admin');
+      localStorage.removeItem('adminUser');
+      localStorage.removeItem('adminToken');
       localStorage.removeItem('userType');
       return {
         ...state,
@@ -315,7 +447,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'USER_LOGIN', payload: user });
       }
     } else if (userType === 'admin') {
-      const savedAdmin = localStorage.getItem('admin');
+      const savedAdmin = localStorage.getItem('adminUser');
       if (savedAdmin) {
         const admin = JSON.parse(savedAdmin);
         dispatch({ type: 'ADMIN_LOGIN', payload: admin });

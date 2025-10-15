@@ -54,49 +54,49 @@ const UserManagement = () => {
         setUsers([
           {
             _id: '1',
-            firstName: 'John',
-            lastName: 'Doe',
-            email: 'john.doe@example.com',
-            phone: '+1 (555) 123-4567',
+            firstName: 'Rajesh',
+            lastName: 'Kumar',
+            email: 'rajesh.kumar@email.com',
+            phone: '+91 98765 43210',
             role: 'user',
             isActive: true,
             ordersCount: 5,
-            totalSpent: 2499,
+            totalSpent: 24999,
             lastLogin: '2024-01-15',
             createdAt: '2024-01-01'
           },
           {
             _id: '2',
-            firstName: 'Jane',
-            lastName: 'Smith',
-            email: 'jane.smith@example.com',
-            phone: '+1 (555) 234-5678',
+            firstName: 'Priya',
+            lastName: 'Sharma',
+            email: 'priya.sharma@email.com',
+            phone: '+91 87654 32109',
             role: 'user',
             isActive: true,
             ordersCount: 3,
-            totalSpent: 1299,
+            totalSpent: 12999,
             lastLogin: '2024-01-14',
             createdAt: '2024-01-02'
           },
           {
             _id: '3',
-            firstName: 'Bob',
-            lastName: 'Johnson',
-            email: 'bob.johnson@example.com',
-            phone: '+1 (555) 345-6789',
+            firstName: 'Amit',
+            lastName: 'Patel',
+            email: 'amit.patel@email.com',
+            phone: '+91 76543 21098',
             role: 'user',
             isActive: false,
             ordersCount: 1,
-            totalSpent: 599,
+            totalSpent: 5999,
             lastLogin: '2024-01-10',
             createdAt: '2024-01-03'
           },
           {
             _id: '4',
-            firstName: 'Admin',
-            lastName: 'User',
-            email: 'admin@furniturestore.com',
-            phone: '+1 (555) 456-7890',
+            firstName: 'Sunita',
+            lastName: 'Reddy',
+            email: 'sunita.reddy@email.com',
+            phone: '+91 65432 10987',
             role: 'admin',
             isActive: true,
             ordersCount: 0,
@@ -461,7 +461,7 @@ const UserManagement = () => {
                     </div>
                   </TableCell>
                   <TableCell>{user.ordersCount}</TableCell>
-                  <TableCell>${user.totalSpent.toLocaleString()}</TableCell>
+                  <TableCell>₹{user.totalSpent.toLocaleString()}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />

@@ -71,7 +71,7 @@ const FurnitureDetail = () => {
   };
 
   const features = [
-    { icon: <Truck className="w-5 h-5" />, title: 'Free Delivery', description: 'On orders over $500' },
+    { icon: <Truck className="w-5 h-5" />, title: 'Free Delivery', description: 'On orders over ₹5000' },
     { icon: <Shield className="w-5 h-5" />, title: '1 Year Warranty', description: 'Full coverage included' },
     { icon: <RotateCcw className="w-5 h-5" />, title: '30-Day Returns', description: 'Easy returns policy' }
   ];
@@ -178,7 +178,7 @@ const FurnitureDetail = () => {
               {furniture.price && (
                 <div className="p-4 border rounded-lg">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-2xl font-bold text-primary">${furniture.price}</span>
+                    <span className="text-2xl font-bold text-primary">₹{furniture.price}</span>
                     <span className="text-muted-foreground">One-time purchase</span>
                   </div>
                   <Button 
@@ -196,13 +196,13 @@ const FurnitureDetail = () => {
                 <div className="p-4 border rounded-lg">
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-2xl font-bold text-accent">${furniture.rentPrice}/month</span>
+                      <span className="text-2xl font-bold text-accent">₹{furniture.rentPrice}/month</span>
                       <span className="text-muted-foreground">Monthly rental</span>
                     </div>
                     {furniture.deposit && (
                       <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Security deposit:</span>
-                        <span>${furniture.deposit}</span>
+                        <span>₹{furniture.deposit}</span>
                       </div>
                     )}
                   </div>

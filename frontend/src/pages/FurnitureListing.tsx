@@ -162,15 +162,15 @@ const FurnitureListing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">
+        <div className="mb-8 text-center">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
             Furniture Collection
           </h1>
-          <p className="text-muted-foreground">
-            Discover premium furniture for your home and office
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Discover our curated selection of premium furniture for every space and style
           </p>
         </div>
 
@@ -243,7 +243,7 @@ const FurnitureListing = () => {
               {/* Price Range */}
               <div className="space-y-4 mb-6">
                 <Label>
-                  Price Range: ${localPriceRange[0]} - ${localPriceRange[1]}
+                  Price Range: ₹{localPriceRange[0]} - ₹{localPriceRange[1]}
                 </Label>
                 <Slider
                   value={localPriceRange}
@@ -323,7 +323,7 @@ const FurnitureListing = () => {
               {filteredFurniture.map((furniture) => (
                 <Card
                   key={furniture.id}
-                  className="group hover:shadow-medium transition-shadow">
+                  className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:scale-105">
                   <CardHeader className="p-0">
                     <div className="relative overflow-hidden rounded-t-lg">
                       <img
@@ -334,7 +334,7 @@ const FurnitureListing = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                        className="absolute top-2 right-2 bg-white/90 hover:bg-red-500 hover:text-white transition-colors duration-200"
                         onClick={() => handleToggleWishlist(furniture.id)}>
                         <Heart
                           className={`w-4 h-4 ${
@@ -345,7 +345,7 @@ const FurnitureListing = () => {
                         />
                       </Button>
                       {furniture.type === "both" && (
-                        <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
+                        <Badge className="absolute top-2 left-2 bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold">
                           Sale & Rent
                         </Badge>
                       )}
@@ -378,7 +378,7 @@ const FurnitureListing = () => {
                       {furniture.price && (
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-bold text-primary">
-                            ${furniture.price}
+                            ₹{furniture.price}
                           </span>
                           <span className="text-sm text-muted-foreground">
                             Purchase
@@ -389,11 +389,11 @@ const FurnitureListing = () => {
                         <div className="flex justify-between items-center">
                           <div>
                             <span className="text-lg font-bold text-accent">
-                              ${furniture.rentPrice}/mo
+                              ₹{furniture.rentPrice}/mo
                             </span>
                             {furniture.deposit && (
                               <span className="text-sm text-muted-foreground block">
-                                + ${furniture.deposit} deposit
+                                + ₹{furniture.deposit} deposit
                               </span>
                             )}
                           </div>
@@ -410,7 +410,7 @@ const FurnitureListing = () => {
                       <Button
                         size="sm"
                         onClick={() => handleAddToCart(furniture, "sell")}
-                        className="flex-1">
+                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold">
                         <ShoppingCart className="w-4 h-4 mr-2" />
                         Buy
                       </Button>
@@ -420,7 +420,7 @@ const FurnitureListing = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleAddToCart(furniture, "rent")}
-                        className="flex-1">
+                        className="flex-1 border-blue-500 text-blue-600 hover:bg-blue-50 font-semibold">
                         <Calendar className="w-4 h-4 mr-2" />
                         Rent
                       </Button>

@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
+    orderNumber: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -14,6 +19,10 @@ const orderSchema = new mongoose.Schema(
           ref: "Item",
           required: true,
         },
+        name: {
+          type: String,
+          required: true,
+        },
         quantity: {
           type: Number,
           required: true,
@@ -23,37 +32,19 @@ const orderSchema = new mongoose.Schema(
           type: Number,
           required: true,
         },
-        isRental: {
-          type: Boolean,
+        type: {
+          type: String,
+          enum: ['sell', 'rent'],
           required: true,
-          default: false,
-        },
-        rentalDuration: {
-          type: Number, // in days
-          required: function () {
-            return this.isRental;
-          },
-        },
-        rentalStartDate: {
-          type: Date,
-          required: function () {
-            return this.isRental;
-          },
-        },
-        rentalEndDate: {
-          type: Date,
-          required: function () {
-            return this.isRental;
-          },
         },
       },
     ],
-    orderType: {
+    type: {
       type: String,
-      enum: ["purchase", "rental", "mixed"],
+      enum: ["purchase", "rental"],
       required: true,
     },
-    totalAmount: {
+    total: {
       type: Number,
       required: true,
     },
@@ -88,48 +79,8 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
     shippingAddress: {
-      street: {
-        type: String,
-        required: true,
-      },
-      city: {
-        type: String,
-        required: true,
-      },
-      state: {
-        type: String,
-        required: true,
-      },
-      zipCode: {
-        type: String,
-        required: true,
-      },
-      country: {
-        type: String,
-        required: true,
-      },
-    },
-    billingAddress: {
-      street: {
-        type: String,
-        required: true,
-      },
-      city: {
-        type: String,
-        required: true,
-      },
-      state: {
-        type: String,
-        required: true,
-      },
-      zipCode: {
-        type: String,
-        required: true,
-      },
-      country: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
     },
     notes: {
       type: String,

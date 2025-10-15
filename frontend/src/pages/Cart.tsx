@@ -138,7 +138,7 @@ const Cart = () => {
                           </Badge>
                           {item.type === 'rent' && item.furniture.deposit && (
                             <span className="text-sm text-muted-foreground">
-                              +${item.furniture.deposit} deposit
+                              +₹{item.furniture.deposit} deposit
                             </span>
                           )}
                         </div>
@@ -164,12 +164,12 @@ const Cart = () => {
                           
                           <div className="text-right">
                             <div className="font-semibold text-lg">
-                              ${(item.type === 'sell' ? item.furniture.price! : item.furniture.rentPrice!) * item.quantity}
+                              ₹{(item.type === 'sell' ? item.furniture.price! : item.furniture.rentPrice!) * item.quantity}
                               {item.type === 'rent' && '/mo'}
                             </div>
                             {item.type === 'rent' && item.furniture.deposit && (
                               <div className="text-sm text-muted-foreground">
-                                +${item.furniture.deposit * item.quantity} deposit
+                                +₹{item.furniture.deposit * item.quantity} deposit
                               </div>
                             )}
                           </div>
@@ -192,21 +192,21 @@ const Cart = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
-                    <span>${subtotal}</span>
+                    <span>₹{subtotal}</span>
                   </div>
                   {deposits > 0 && (
                     <div className="flex justify-between">
                       <span>Security Deposits:</span>
-                      <span>${deposits}</span>
+                      <span>₹{deposits}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span>Shipping:</span>
-                    <span>{shipping === 0 ? 'Free' : `$${shipping}`}</span>
+                    <span>{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
                   </div>
                   {shipping === 0 && (
                     <p className="text-sm text-green-600">
-                      🎉 Free shipping on orders over $500!
+                      🎉 Free shipping on orders over ₹5000!
                     </p>
                   )}
                 </div>
@@ -215,7 +215,7 @@ const Cart = () => {
 
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total:</span>
-                  <span>${total}</span>
+                  <span>₹{total}</span>
                 </div>
 
                 <div className="space-y-3 pt-4">

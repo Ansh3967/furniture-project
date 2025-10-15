@@ -51,59 +51,27 @@ const ItemManagement = () => {
 
   const categories = ['Sofas', 'Desks', 'Chairs', 'Tables', 'Storage'];
 
-  // Sample data - replace with actual API calls
+  // Load items from API
   useEffect(() => {
     const loadItems = async () => {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setItems([
-          {
-            _id: '1',
-            title: 'Premium Leather Sofa',
-            description: 'Luxurious 3-seater leather sofa with premium craftsmanship',
-            category: 'Sofas',
-            price: 2499,
-            rentPrice: 199,
-            deposit: 500,
-            type: 'both',
-            availability: true,
-            images: ['/placeholder.svg'],
-            rating: 4.8,
-            reviewCount: 24,
-            createdAt: '2024-01-15'
-          },
-          {
-            _id: '2',
-            title: 'Walnut Executive Desk',
-            description: 'Professional walnut desk perfect for home office',
-            category: 'Desks',
-            price: 1299,
-            rentPrice: 89,
-            deposit: 200,
-            type: 'both',
-            availability: true,
-            images: ['/placeholder.svg'],
-            rating: 4.6,
-            reviewCount: 18,
-            createdAt: '2024-01-14'
-          },
-          {
-            _id: '3',
-            title: 'Ergonomic Office Chair',
-            description: 'High-back ergonomic chair with lumbar support',
-            category: 'Chairs',
-            price: 599,
-            type: 'sell',
-            availability: true,
-            images: ['/placeholder.svg'],
-            rating: 4.7,
-            reviewCount: 32,
-            createdAt: '2024-01-13'
-          }
-        ]);
+      try {
+        // TODO: Replace with actual API call
+        // const response = await adminService.getItems();
+        // setItems(response.items);
+        
+        // For now, show empty state
+        setItems([]);
+      } catch (error) {
+        console.error('Failed to load items:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load items. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
     loadItems();
@@ -294,7 +262,7 @@ const ItemManagement = () => {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="price">Price (₹)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -304,7 +272,7 @@ const ItemManagement = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="rentPrice">Rent Price ($)</Label>
+                  <Label htmlFor="rentPrice">Rent Price (₹)</Label>
                   <Input
                     id="rentPrice"
                     type="number"
@@ -314,7 +282,7 @@ const ItemManagement = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="deposit">Deposit ($)</Label>
+                  <Label htmlFor="deposit">Deposit (₹)</Label>
                   <Input
                     id="deposit"
                     type="number"
@@ -432,10 +400,10 @@ const ItemManagement = () => {
                   <TableCell>{item.category}</TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">${item.price}</p>
+                      <p className="font-medium">₹{item.price}</p>
                       {item.rentPrice && (
                         <p className="text-sm text-muted-foreground">
-                          Rent: ${item.rentPrice}/mo
+                          Rent: ₹{item.rentPrice}/mo
                         </p>
                       )}
                     </div>
@@ -549,7 +517,7 @@ const ItemManagement = () => {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="edit-price">Price ($)</Label>
+                <Label htmlFor="edit-price">Price (₹)</Label>
                 <Input
                   id="edit-price"
                   type="number"
@@ -559,7 +527,7 @@ const ItemManagement = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-rentPrice">Rent Price ($)</Label>
+                <Label htmlFor="edit-rentPrice">Rent Price (₹)</Label>
                 <Input
                   id="edit-rentPrice"
                   type="number"
@@ -569,7 +537,7 @@ const ItemManagement = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-deposit">Deposit ($)</Label>
+                <Label htmlFor="edit-deposit">Deposit (₹)</Label>
                 <Input
                   id="edit-deposit"
                   type="number"

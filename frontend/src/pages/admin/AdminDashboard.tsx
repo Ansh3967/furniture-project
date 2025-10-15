@@ -121,7 +121,7 @@ const AdminDashboard = () => {
     },
     {
       title: "Total Revenue",
-      value: `$${stats.totalRevenue.toLocaleString()}`,
+      value: `₹${stats.totalRevenue.toLocaleString()}`,
       icon: DollarSign,
       description: `${stats.completedOrders} completed`,
       trend: "up",
@@ -216,7 +216,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <span className="text-sm font-medium">
-                            ${order.totalAmount}
+                            ₹{order.totalAmount}
                           </span>
                           <Badge
                             variant={

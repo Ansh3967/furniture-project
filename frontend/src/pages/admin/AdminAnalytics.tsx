@@ -178,7 +178,7 @@ const AdminAnalytics = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${analyticsData.revenue.total.toLocaleString()}</div>
+            <div className="text-2xl font-bold">₹{analyticsData.revenue.total.toLocaleString()}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
               +{analyticsData.revenue.growth}% from last month
@@ -309,7 +309,7 @@ const AdminAnalytics = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${category.revenue.toLocaleString()}</p>
+                      <p className="font-medium">₹{category.revenue.toLocaleString()}</p>
                       <div className="flex items-center space-x-1">
                         {category.growth > 0 ? (
                           <TrendingUp className="h-3 w-3 text-green-500" />
@@ -348,7 +348,7 @@ const AdminAnalytics = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${item.revenue.toLocaleString()}</p>
+                      <p className="font-medium">₹{item.revenue.toLocaleString()}</p>
                       <div className="flex items-center space-x-1">
                         {item.growth > 0 ? (
                           <TrendingUp className="h-3 w-3 text-green-500" />
@@ -389,7 +389,7 @@ const AdminAnalytics = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${month.revenue.toLocaleString()}</p>
+                      <p className="font-medium">₹{month.revenue.toLocaleString()}</p>
                       <p className="text-sm text-muted-foreground">Revenue</p>
                     </div>
                   </div>

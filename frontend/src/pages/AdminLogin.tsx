@@ -13,6 +13,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { authService, AdminLoginData } from "@/services/authService";
 import { useToast } from "@/hooks/use-toast";
+import { useApp } from "@/contexts/AppContext";
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState<AdminLoginData>({
@@ -23,6 +24,7 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { dispatch } = useApp();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,14 +46,18 @@ const AdminLogin = () => {
       // Store admin token separately from user token
       localStorage.setItem("adminToken", response.token);
       localStorage.setItem("adminUser", JSON.stringify(response.admin));
+      localStorage.setItem("userType", "admin");
+
+      // Dispatch admin login to context
+      dispatch({ type: "ADMIN_LOGIN", payload: response.admin });
 
       toast({
         title: "Login Successful",
         description: "Welcome back, admin!",
       });
 
-      // Redirect to admin dashboard
-      navigate("/admin");
+      // Redirect to home page instead of admin dashboard
+      navigate("/");
     } catch (error: any) {
       console.error("Admin login error:", error);
       const errorMessage =

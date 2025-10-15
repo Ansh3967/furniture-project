@@ -24,7 +24,7 @@ const Index = () => {
     {
       icon: <Truck className="w-6 h-6" />,
       title: 'Free Delivery',
-      description: 'Complimentary delivery on orders over $500'
+      description: 'Complimentary delivery on orders over ₹5000'
     },
     {
       icon: <Calendar className="w-6 h-6" />,
@@ -49,7 +49,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-hero">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -59,9 +59,9 @@ const Index = () => {
                 <Badge variant="secondary" className="w-fit">
                   Premium Furniture Collection
                 </Badge>
-                <h1 className="text-5xl lg:text-6xl font-bold text-primary leading-tight">
+                <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
                   Beautiful Furniture for
-                  <span className="text-accent"> Every Space</span>
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent"> Every Space</span>
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-lg">
                   Discover our curated collection of premium home and office furniture. 
@@ -70,12 +70,12 @@ const Index = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" asChild className="bg-gradient-primary hover:opacity-90 transition-opacity">
+                <Button size="lg" asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
                   <Link to="/furniture">
                     Shop Now <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" asChild>
+                <Button variant="outline" size="lg" asChild className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 text-lg rounded-xl">
                   <Link to="/furniture?type=rent">
                     Explore Rentals
                   </Link>

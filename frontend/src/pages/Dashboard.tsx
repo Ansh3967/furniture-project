@@ -70,7 +70,7 @@ const Dashboard = () => {
                       <p className="text-sm text-muted-foreground">{order.items.length} items</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${order.total}</p>
+                      <p className="font-medium">₹{order.total}</p>
                       <Badge variant="secondary">{order.status}</Badge>
                     </div>
                   </div>
