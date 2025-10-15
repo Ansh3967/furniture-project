@@ -67,6 +67,22 @@ export interface ItemResponse {
   total: number;
 }
 
+export interface Review {
+  _id: string;
+  itemId: string;
+  userId: { _id: string; firstName: string; lastName: string } | string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}
+
+export interface ItemDetailResponse {
+  item: Item;
+  reviews: Review[];
+  avgRating: number;
+  reviewCount: number;
+}
+
 export const itemService = {
   // Get all items with filtering and pagination
   getItems: async (filters?: ItemFilters): Promise<ItemResponse> => {
@@ -80,7 +96,7 @@ export const itemService = {
   },
 
   // Get single item by ID
-  getItem: async (id: string): Promise<Item> => {
+  getItem: async (id: string): Promise<ItemDetailResponse> => {
     try {
       const response = await api.get(`/user/item/${id}`);
       return response.data;

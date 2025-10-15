@@ -18,7 +18,12 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
-import { itemService, Item } from "@/services/itemService";
+import {
+  itemService,
+  Item,
+  Review,
+  ItemDetailResponse,
+} from "@/services/itemService";
 
 const FurnitureDetail = () => {
   const { id } = useParams();
@@ -28,6 +33,11 @@ const FurnitureDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [item, setItem] = useState<Item | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [avgRating, setAvgRating] = useState<number>(0);
+  const [reviewCount, setReviewCount] = useState<number>(0);
+  const [newRating, setNewRating] = useState<number>(5);
+  const [newComment, setNewComment] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,8 +45,11 @@ const FurnitureDetail = () => {
       if (!id) return;
       setLoading(true);
       try {
-        const data = await itemService.getItem(id);
-        setItem(data);
+        const data: ItemDetailResponse = await itemService.getItem(id);
+        setItem(data.item);
+        setReviews(data.reviews || []);
+        setAvgRating(data.avgRating || 0);
+        setReviewCount(data.reviewCount || 0);
       } catch (e) {
         // show not found UI
         setItem(null);
@@ -48,7 +61,7 @@ const FurnitureDetail = () => {
   }, [id]);
 
   const imageUrls = Array.isArray(item?.images)
-    ? item!.images
+    ? (item!.images as any[])
         .map((img: any) => (typeof img === "string" ? img : img.url))
         .filter(Boolean)
     : [];
@@ -61,15 +74,16 @@ const FurnitureDetail = () => {
       payload: {
         furniture: {
           id: item._id,
+          sellerId: (item as any).sellerId, // Fix for missing 'sellerId' on type 'Item'
           title: item.name,
           description: item.description,
           price: item.price,
           rentPrice: item.rentPrice,
           deposit: item.depositPrice,
           rating: 0,
-          reviewCount: 0,
+          reviewCount: reviewCount,
           category: item.category?.name,
-          type: item.saleType,
+          type: item.saleType === "sale" ? "sell" : item.saleType, // Map "sale" to "sell"
           availability: item.availability === "available",
           images,
         },
@@ -85,17 +99,18 @@ const FurnitureDetail = () => {
   };
 
   const handleToggleWishlist = () => {
-    if (state.wishlist.includes(furniture.id)) {
-      dispatch({ type: "REMOVE_FROM_WISHLIST", payload: furniture.id });
+    if (!item) return;
+    if (state.wishlist.includes(item._id)) {
+      dispatch({ type: "REMOVE_FROM_WISHLIST", payload: item._id });
       toast({
         title: "Removed from wishlist",
-        description: `${furniture.title} has been removed from your wishlist.`,
+        description: `${item.name} has been removed from your wishlist.`,
       });
     } else {
-      dispatch({ type: "ADD_TO_WISHLIST", payload: furniture.id });
+      dispatch({ type: "ADD_TO_WISHLIST", payload: item._id });
       toast({
         title: "Added to wishlist!",
-        description: `${furniture.title} has been added to your wishlist.`,
+        description: `${item.name} has been added to your wishlist.`,
       });
     }
   };
@@ -118,26 +133,28 @@ const FurnitureDetail = () => {
     },
   ];
 
-  const reviews = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      rating: 5,
-      date: "2 weeks ago",
-      comment:
-        "Absolutely love this piece! The quality is exceptional and it looks even better in person.",
-      verified: true,
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      rating: 4,
-      date: "1 month ago",
-      comment:
-        "Great furniture, very comfortable and well-made. Delivery was smooth.",
-      verified: true,
-    },
-  ];
+  // ******** SOLVE ERROR: duplicate 'reviews' declaration ********
+  // Remove dummy reviews, keep fetched reviews from state
+  // const reviews = [
+  //   {
+  //     id: 1,
+  //     name: "Sarah Johnson",
+  //     rating: 5,
+  //     date: "2 weeks ago",
+  //     comment:
+  //       "Absolutely love this piece! The quality is exceptional and it looks even better in person.",
+  //     verified: true,
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Michael Chen",
+  //     rating: 4,
+  //     date: "1 month ago",
+  //     comment:
+  //       "Great furniture, very comfortable and well-made. Delivery was smooth.",
+  //     verified: true,
+  //   },
+  // ];
 
   if (loading) {
     return (
@@ -231,16 +248,16 @@ const FurnitureDetail = () => {
                       <Star
                         key={i}
                         className={`w-4 h-4 ${
-                          i < Math.floor(0)
+                          i < Math.floor(avgRating)
                             ? "fill-accent text-accent"
                             : "text-muted-foreground"
                         }`}
                       />
                     ))}
                   </div>
-                  <span className="text-sm font-medium ml-2">0</span>
+                  <span className="text-sm font-medium ml-2">{avgRating}</span>
                   <span className="text-muted-foreground text-sm ml-1">
-                    (0 reviews)
+                    ({reviewCount} reviews)
                   </span>
                 </div>
                 <Badge variant="secondary">{item.category?.name}</Badge>
@@ -348,10 +365,10 @@ const FurnitureDetail = () => {
                   </h3>
                   <div className="prose max-w-none">
                     <p className="text-muted-foreground">
-                      {furniture.description} This premium piece combines
-                      exceptional craftsmanship with modern design principles.
-                      Made from high-quality materials, it's built to last while
-                      providing both comfort and style to your space.
+                      {item.description} This premium piece combines exceptional
+                      craftsmanship with modern design principles. Made from
+                      high-quality materials, it's built to last while providing
+                      both comfort and style to your space.
                     </p>
                     <p className="text-muted-foreground mt-4">
                       Perfect for both residential and commercial use, this
@@ -373,7 +390,7 @@ const FurnitureDetail = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Category:</span>
-                        <span>{furniture.category}</span>
+                        <span>{item.category?.name}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
@@ -381,9 +398,13 @@ const FurnitureDetail = () => {
                         </span>
                         <Badge
                           variant={
-                            furniture.availability ? "default" : "destructive"
+                            item.availability === "available"
+                              ? "default"
+                              : "destructive"
                           }>
-                          {furniture.availability ? "In Stock" : "Out of Stock"}
+                          {item.availability === "available"
+                            ? "In Stock"
+                            : "Out of Stock"}
                         </Badge>
                       </div>
                       <div className="flex justify-between">
@@ -398,7 +419,7 @@ const FurnitureDetail = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Type:</span>
-                        <span className="capitalize">{furniture.type}</span>
+                        <span className="capitalize">{item.saleType}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Assembly:</span>
@@ -410,7 +431,7 @@ const FurnitureDetail = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Rating:</span>
-                        <span>{furniture.rating}/5 Stars</span>
+                        <span>{avgRating}/5 Stars</span>
                       </div>
                     </div>
                   </div>
@@ -428,54 +449,103 @@ const FurnitureDetail = () => {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className="w-4 h-4 fill-accent text-accent"
+                            className={
+                              i < Math.round(avgRating)
+                                ? "w-4 h-4 fill-accent text-accent"
+                                : "w-4 h-4 text-muted-foreground"
+                            }
                           />
                         ))}
                       </div>
-                      <span className="font-medium">{furniture.rating}</span>
-                      <span className="text-muted-foreground">(0 reviews)</span>
+                      <span className="font-medium">{avgRating}</span>
+                      <span className="text-muted-foreground">
+                        ({reviewCount} reviews)
+                      </span>
                     </div>
                   </div>
 
                   <div className="space-y-6">
-                    {reviews.map((review) => (
-                      <div
-                        key={review.id}
-                        className="border-b border-border pb-6 last:border-b-0">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{review.name}</span>
-                              {review.verified && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Verified Purchase
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <div className="flex">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`w-3 h-3 ${
-                                      i < review.rating
-                                        ? "fill-accent text-accent"
-                                        : "text-muted-foreground"
-                                    }`}
-                                  />
-                                ))}
+                    {reviews.length > 0 ? (
+                      reviews.map((review) => (
+                        <div
+                          key={
+                            typeof review._id === "string"
+                              ? review._id
+                              : Math.random()
+                          }
+                          className="border-b border-border pb-6 last:border-b-0">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">
+                                  {typeof review.userId === "object"
+                                    ? `${review.userId.firstName ?? ""} ${
+                                        review.userId.lastName ?? ""
+                                      }`
+                                    : "User"}
+                                </span>
                               </div>
-                              <span className="text-sm text-muted-foreground">
-                                {review.date}
-                              </span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <div className="flex">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`w-3 h-3 ${
+                                        i < review.rating
+                                          ? "fill-accent text-accent"
+                                          : "text-muted-foreground"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           </div>
+                          {review.comment && (
+                            <p className="text-muted-foreground">
+                              {review.comment}
+                            </p>
+                          )}
                         </div>
-                        <p className="text-muted-foreground">
-                          {review.comment}
-                        </p>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground">No reviews yet.</p>
+                    )}
+                  </div>
+
+                  {/* Submit Review (requires user login & token; UI only) */}
+                  <div className="mt-6 space-y-3">
+                    <h4 className="font-semibold">Write a review</h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Rating:</span>
+                      <select
+                        className="border rounded px-2 py-1 text-sm"
+                        value={newRating}
+                        onChange={(e) =>
+                          setNewRating(parseInt(e.target.value, 10))
+                        }>
+                        {[5, 4, 3, 2, 1].map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <textarea
+                      className="w-full border rounded p-2 text-sm"
+                      placeholder="Share your thoughts..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                    />
+                    <Button
+                      onClick={() =>
+                        toast({
+                          title: "Login required",
+                          description: "Please login to submit a review.",
+                        })
+                      }>
+                      Submit Review
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

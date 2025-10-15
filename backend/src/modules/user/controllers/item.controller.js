@@ -93,15 +93,22 @@ export const get = async (req, res) => {
 
     // Get reviews for this item
     let reviews = [];
+    let avgRating = 0;
+    let reviewCount = 0;
     try {
       reviews = await Review.find({ itemId: id })
-        .populate("user", "firstName lastName")
+        .populate("userId", "firstName lastName")
         .sort({ createdAt: -1 });
+      reviewCount = reviews.length;
+      if (reviewCount > 0) {
+        const total = reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
+        avgRating = Math.round((total / reviewCount) * 10) / 10;
+      }
     } catch (reviewErr) {
       reviews = [];
     }
 
-    res.json({ item, reviews });
+    res.json({ item, reviews, avgRating, reviewCount });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

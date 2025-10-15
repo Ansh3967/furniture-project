@@ -12,6 +12,8 @@ reviewRouter.post(
   validate(validation.add),
   controller.add
 );
+// List reviews for a specific item
+reviewRouter.get("/item/:itemId", controller.listForItem);
 reviewRouter.post(
   "/edit",
   passport.authenticate("user", { session: false }),
