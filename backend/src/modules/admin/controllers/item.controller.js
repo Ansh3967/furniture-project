@@ -89,18 +89,20 @@ export const add = async (req, res) => {
     // Handle uploaded images - create media records
     if (req.files && req.files.length > 0) {
       const mediaIds = [];
-      
+
       for (const file of req.files) {
         // Create media record for each uploaded file
         const mediaData = {
           filename: file.filename,
           originalName: file.originalname,
-          url: `/uploads/${file.filename}`,
+          url: `http://localhost:${process.env.PORT}/uploads/${file.filename}`,
           mimeType: file.mimetype,
           size: file.size,
           uploadedBy: adminId,
           altText: req.body.altText || "",
-          tags: req.body.tags ? req.body.tags.split(",").map(tag => tag.trim()) : [],
+          tags: req.body.tags
+            ? req.body.tags.split(",").map((tag) => tag.trim())
+            : [],
         };
 
         // Add image metadata if it's an image
@@ -114,7 +116,7 @@ export const add = async (req, res) => {
         await media.save();
         mediaIds.push(media._id);
       }
-      
+
       itemData.images = mediaIds;
     }
 
@@ -156,18 +158,20 @@ export const edit = async (req, res) => {
     // Handle uploaded images - create media records
     if (req.files && req.files.length > 0) {
       const mediaIds = [];
-      
+
       for (const file of req.files) {
         // Create media record for each uploaded file
         const mediaData = {
           filename: file.filename,
           originalName: file.originalname,
-          url: `/uploads/${file.filename}`,
+          url: `http://localhost:${process.env.PORT}/uploads/${file.filename}`,
           mimeType: file.mimetype,
           size: file.size,
           uploadedBy: adminId,
           altText: req.body.altText || "",
-          tags: req.body.tags ? req.body.tags.split(",").map(tag => tag.trim()) : [],
+          tags: req.body.tags
+            ? req.body.tags.split(",").map((tag) => tag.trim())
+            : [],
         };
 
         // Add image metadata if it's an image
@@ -181,7 +185,7 @@ export const edit = async (req, res) => {
         await media.save();
         mediaIds.push(media._id);
       }
-      
+
       updateData.images = mediaIds;
     }
 

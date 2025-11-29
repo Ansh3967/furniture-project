@@ -471,10 +471,16 @@ const ItemManagement = () => {
     setIsEditDialogOpen(true);
   };
 
+  // --- Fixed code for Filtered Items: add null-safety for title & description ---
   const filteredItems = items.filter((item) => {
+    const title = typeof item.title === "string" ? item.title : "";
+    const description =
+      typeof item.description === "string" ? item.description : "";
+    const search = typeof searchTerm === "string" ? searchTerm : "";
+
     const matchesSearch =
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+      title.toLowerCase().includes(search.toLowerCase()) ||
+      description.toLowerCase().includes(search.toLowerCase());
     const matchesCategory =
       categoryFilter === "all" || item.categoryId === categoryFilter;
     return matchesSearch && matchesCategory;
@@ -1012,28 +1018,34 @@ const ItemManagement = () => {
                   <div className="mt-4">
                     <Label>New Images Preview</Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                      {formData.images.map((file, index) => (
-                        <div key={index} className="relative group">
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                            <img
-                              src={URL.createObjectURL(file)}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
+                      {formData.images.map((file, index) => {
+                        // Console log is now valid inside the function body
+                        console.log(file);
+
+                        // Explicit return statement
+                        return (
+                          <div key={index} className="relative group">
+                            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeImage(index)}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                              {file.name}
+                            </p>
                           </div>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => removeImage(index)}>
-                            <X className="h-3 w-3" />
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-1 truncate">
-                            {file.name}
-                          </p>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

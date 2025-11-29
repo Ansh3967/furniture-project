@@ -18,12 +18,14 @@ export const uploadMedia = async (req, res) => {
       const mediaData = {
         filename: file.filename,
         originalName: file.originalname,
-        url: `/uploads/${file.filename}`,
+        url: `http://localhost:${process.env.PORT}/uploads/${file.filename}`,
         mimeType: file.mimetype,
         size: file.size,
         uploadedBy: adminId,
         altText: req.body.altText || "",
-        tags: req.body.tags ? req.body.tags.split(",").map(tag => tag.trim()) : [],
+        tags: req.body.tags
+          ? req.body.tags.split(",").map((tag) => tag.trim())
+          : [],
       };
 
       // Add image metadata if it's an image
@@ -123,7 +125,9 @@ export const updateMedia = async (req, res) => {
     const updateData = {};
     if (altText !== undefined) updateData.altText = altText;
     if (tags !== undefined) {
-      updateData.tags = Array.isArray(tags) ? tags : tags.split(",").map(tag => tag.trim());
+      updateData.tags = Array.isArray(tags)
+        ? tags
+        : tags.split(",").map((tag) => tag.trim());
     }
 
     const media = await Media.findByIdAndUpdate(id, updateData, {
