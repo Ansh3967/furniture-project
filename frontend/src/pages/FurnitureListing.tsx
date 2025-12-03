@@ -32,12 +32,7 @@ import { useApp } from "@/contexts/AppContext";
 import { categoryService, Category } from "@/services/categoryService";
 import { itemService, Item } from "@/services/itemService";
 
-// Import sample images for fallback
-import chairOffice from "@/assets/chair-office.jpg";
-import deskWalnut from "@/assets/desk-walnut.jpg";
-import heroLivingRoom from "@/assets/hero-living-room.jpg";
-import heroOffice from "@/assets/hero-office.jpg";
-import sofaPremium from "@/assets/sofa-premium.jpg";
+// Removed fallback images - only use images from backend
 
 const FurnitureListing = () => {
   const { state, dispatch } = useApp();
@@ -74,20 +69,19 @@ const FurnitureListing = () => {
 
   // Get furniture with images
   const furnitureWithImages = useMemo(() => {
-    // Array of fallback images
-    const fallbackImages = [chairOffice, deskWalnut, heroLivingRoom, heroOffice, sofaPremium];
-    
-    return items.map((item, index) => {
+    return items.map((item) => {
       const imageUrls = Array.isArray(item.images)
         ? item.images
-            .map((img: any) => (typeof img === "string" ? img : img.url))
-            .filter(Boolean)
+            .map((img: any) => {
+              if (typeof img === "string") return img;
+              if (img && typeof img === "object" && "url" in img) return img.url;
+              return null;
+            })
+            .filter((url): url is string => Boolean(url))
         : [];
 
-      // Use fallback images if no images are available
-      const finalImages = imageUrls.length > 0 
-        ? imageUrls 
-        : [fallbackImages[index % fallbackImages.length]];
+      // Only use images from backend, no fallback images
+      const finalImages = imageUrls.length > 0 ? imageUrls : [];
 
       return {
         ...item,
@@ -96,9 +90,11 @@ const FurnitureListing = () => {
         description: item.description,
         category: item.category?.name || 'Unknown',
         type: item.saleType === "sale" ? "sell" : item.saleType,
+        saleType: item.saleType, // Preserve saleType for conditional rendering
         price: item.price || 0,
         rentPrice: item.rentPrice || 0,
         deposit: item.depositPrice || 0,
+        depositPrice: item.depositPrice || 0, // Preserve depositPrice for conditional rendering
         availability: item.availability === 'available',
         sellerId: 'admin', // Since items are created by admin
         rating: 0, // Default rating
@@ -125,8 +121,7 @@ const FurnitureListing = () => {
       // Category filter
       if (
         state.selectedCategory !== "all" &&
-        item.category?.name?.toLowerCase() !==
-          state.selectedCategory.toLowerCase()
+        item.category?.toLowerCase() !== state.selectedCategory.toLowerCase()
       ) {
         return false;
       }
@@ -353,12 +348,20 @@ const FurnitureListing = () => {
                   key={furniture.id}
                   className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:scale-105">
                   <CardHeader className="p-0">
-                    <div className="relative overflow-hidden rounded-t-lg">
-                      <img
-                        src={furniture.images[0]}
-                        alt={furniture.title}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                    <div className="relative overflow-hidden rounded-t-lg bg-muted">
+                      {furniture.images && furniture.images.length > 0 ? (
+                        <img
+                          src={furniture.images[0]}
+                          alt={furniture.title}
+                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-48 flex items-center justify-center">
+                          <p className="text-muted-foreground text-sm text-center px-4">
+                            No image available
+                          </p>
+                        </div>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

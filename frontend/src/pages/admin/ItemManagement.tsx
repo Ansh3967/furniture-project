@@ -177,6 +177,44 @@ const ItemManagement = () => {
         return;
       }
 
+      // Validate price fields based on type
+      if (formData.type === "sell" && (!formData.price || formData.price <= 0)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid selling price.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (formData.type === "rent" && (!formData.rentPrice || formData.rentPrice <= 0)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid rent price.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (formData.type === "both") {
+        if (!formData.price || formData.price <= 0) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter a valid selling price.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (!formData.rentPrice || formData.rentPrice <= 0) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter a valid rent price.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       // Create FormData to handle file uploads
       const formDataToSend = new FormData();
       
@@ -187,9 +225,14 @@ const ItemManagement = () => {
       formDataToSend.append("availability", formData.availability ? "available" : "out_of_stock");
       formDataToSend.append("saleType", formData.type === "sell" ? "sale" : formData.type === "rent" ? "rent" : "both");
       
-      if (formData.price) formDataToSend.append("price", formData.price.toString());
-      if (formData.rentPrice) formDataToSend.append("rentPrice", formData.rentPrice.toString());
-      formDataToSend.append("depositPrice", (formData.deposit || 0).toString());
+      // Append price fields based on type
+      if (formData.type === "sell" || formData.type === "both") {
+        formDataToSend.append("price", formData.price.toString());
+      }
+      if (formData.type === "rent" || formData.type === "both") {
+        formDataToSend.append("rentPrice", formData.rentPrice.toString());
+        formDataToSend.append("depositPrice", (formData.deposit || 0).toString());
+      }
       formDataToSend.append("condition", "new");
       formDataToSend.append("isFeatured", "false");
       formDataToSend.append("viewCount", "0");
@@ -232,7 +275,7 @@ const ItemManagement = () => {
             ? "rent"
             : "both",
         availability: newItem.availability === "available",
-        images: newItem.images || ["/placeholder.svg"],
+        images: newItem.images && newItem.images.length > 0 ? newItem.images : [],
         rating: 0,
         reviewCount: 0,
         createdAt: newItem.createdAt,
@@ -293,6 +336,44 @@ const ItemManagement = () => {
         return;
       }
 
+      // Validate price fields based on type
+      if (formData.type === "sell" && (!formData.price || formData.price <= 0)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid selling price.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (formData.type === "rent" && (!formData.rentPrice || formData.rentPrice <= 0)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid rent price.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (formData.type === "both") {
+        if (!formData.price || formData.price <= 0) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter a valid selling price.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (!formData.rentPrice || formData.rentPrice <= 0) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter a valid rent price.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       // Create FormData to handle file uploads
       const formDataToSend = new FormData();
       
@@ -303,9 +384,14 @@ const ItemManagement = () => {
       formDataToSend.append("availability", formData.availability ? "available" : "out_of_stock");
       formDataToSend.append("saleType", formData.type === "sell" ? "sale" : formData.type === "rent" ? "rent" : "both");
       
-      if (formData.price) formDataToSend.append("price", formData.price.toString());
-      if (formData.rentPrice) formDataToSend.append("rentPrice", formData.rentPrice.toString());
-      formDataToSend.append("depositPrice", (formData.deposit || 0).toString());
+      // Append price fields based on type
+      if (formData.type === "sell" || formData.type === "both") {
+        formDataToSend.append("price", formData.price.toString());
+      }
+      if (formData.type === "rent" || formData.type === "both") {
+        formDataToSend.append("rentPrice", formData.rentPrice.toString());
+        formDataToSend.append("depositPrice", (formData.deposit || 0).toString());
+      }
       
       // Append image files if any new images are uploaded
       if (formData.images && formData.images.length > 0) {
@@ -572,60 +658,19 @@ const ItemManagement = () => {
                     placeholder="Enter item description"
                   />
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="price">Price (₹)</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          price: Number(e.target.value),
-                        })
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="rentPrice">Rent Price (₹)</Label>
-                    <Input
-                      id="rentPrice"
-                      type="number"
-                      value={formData.rentPrice}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          rentPrice: Number(e.target.value),
-                        })
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="deposit">Deposit (₹)</Label>
-                    <Input
-                      id="deposit"
-                      type="number"
-                      value={formData.deposit}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          deposit: Number(e.target.value),
-                        })
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
                 <div>
-                  <Label htmlFor="type">Item Type</Label>
+                  <Label htmlFor="type">Item Type *</Label>
                   <Select
                     value={formData.type}
-                    onValueChange={(value: "sell" | "rent" | "both") =>
-                      setFormData({ ...formData, type: value })
-                    }>
+                    onValueChange={(value: "sell" | "rent" | "both") => {
+                      // Reset prices when type changes
+                      setFormData({ 
+                        ...formData, 
+                        type: value,
+                        price: value === "rent" ? 0 : formData.price,
+                        rentPrice: value === "sell" ? 0 : formData.rentPrice,
+                      });
+                    }}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -635,6 +680,67 @@ const ItemManagement = () => {
                       <SelectItem value="both">Both Sell & Rent</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Show price field only for "sell" or "both" */}
+                  {(formData.type === "sell" || formData.type === "both") && (
+                    <div>
+                      <Label htmlFor="price">Price (₹) *</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        min="0"
+                        value={formData.price}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            price: Number(e.target.value),
+                          })
+                        }
+                        placeholder="0"
+                        required
+                      />
+                    </div>
+                  )}
+                  {/* Show rent price field only for "rent" or "both" */}
+                  {(formData.type === "rent" || formData.type === "both") && (
+                    <div>
+                      <Label htmlFor="rentPrice">Rent Price (₹) *</Label>
+                      <Input
+                        id="rentPrice"
+                        type="number"
+                        min="0"
+                        value={formData.rentPrice}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            rentPrice: Number(e.target.value),
+                          })
+                        }
+                        placeholder="0"
+                        required
+                      />
+                    </div>
+                  )}
+                  {/* Show deposit field only for "rent" or "both" */}
+                  {(formData.type === "rent" || formData.type === "both") && (
+                    <div>
+                      <Label htmlFor="deposit">Deposit (₹)</Label>
+                      <Input
+                        id="deposit"
+                        type="number"
+                        min="0"
+                        value={formData.deposit}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            deposit: Number(e.target.value),
+                          })
+                        }
+                        placeholder="0"
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -651,7 +757,7 @@ const ItemManagement = () => {
 
                 {/* Image Upload Section */}
                 <div>
-                  <Label htmlFor="images">Item Images</Label>
+                  <Label htmlFor="images">Item Images *</Label>
                   <div className="mt-2">
                     <Input
                       id="images"
@@ -927,60 +1033,19 @@ const ItemManagement = () => {
                   placeholder="Enter item description"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="edit-price">Price (₹)</Label>
-                  <Input
-                    id="edit-price"
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        price: Number(e.target.value),
-                      })
-                    }
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-rentPrice">Rent Price (₹)</Label>
-                  <Input
-                    id="edit-rentPrice"
-                    type="number"
-                    value={formData.rentPrice}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        rentPrice: Number(e.target.value),
-                      })
-                    }
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-deposit">Deposit (₹)</Label>
-                  <Input
-                    id="edit-deposit"
-                    type="number"
-                    value={formData.deposit}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        deposit: Number(e.target.value),
-                      })
-                    }
-                    placeholder="0"
-                  />
-                </div>
-              </div>
               <div>
-                <Label htmlFor="edit-type">Item Type</Label>
+                <Label htmlFor="edit-type">Item Type *</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value: "sell" | "rent" | "both") =>
-                    setFormData({ ...formData, type: value })
-                  }>
+                  onValueChange={(value: "sell" | "rent" | "both") => {
+                    // Reset prices when type changes
+                    setFormData({ 
+                      ...formData, 
+                      type: value,
+                      price: value === "rent" ? 0 : formData.price,
+                      rentPrice: value === "sell" ? 0 : formData.rentPrice,
+                    });
+                  }}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -990,6 +1055,67 @@ const ItemManagement = () => {
                     <SelectItem value="both">Both Sell & Rent</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                {/* Show price field only for "sell" or "both" */}
+                {(formData.type === "sell" || formData.type === "both") && (
+                  <div>
+                    <Label htmlFor="edit-price">Price (₹) *</Label>
+                    <Input
+                      id="edit-price"
+                      type="number"
+                      min="0"
+                      value={formData.price}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          price: Number(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                      required
+                    />
+                  </div>
+                )}
+                {/* Show rent price field only for "rent" or "both" */}
+                {(formData.type === "rent" || formData.type === "both") && (
+                  <div>
+                    <Label htmlFor="edit-rentPrice">Rent Price (₹) *</Label>
+                    <Input
+                      id="edit-rentPrice"
+                      type="number"
+                      min="0"
+                      value={formData.rentPrice}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          rentPrice: Number(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                      required
+                    />
+                  </div>
+                )}
+                {/* Show deposit field only for "rent" or "both" */}
+                {(formData.type === "rent" || formData.type === "both") && (
+                  <div>
+                    <Label htmlFor="edit-deposit">Deposit (₹)</Label>
+                    <Input
+                      id="edit-deposit"
+                      type="number"
+                      min="0"
+                      value={formData.deposit}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          deposit: Number(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                    />
+                  </div>
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <Switch

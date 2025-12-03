@@ -88,42 +88,46 @@ export const add = async (req, res) => {
     const itemData = req.body;
     const adminId = req.admin._id;
 
+    // Validate that at least one image is uploaded (required for new items)
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ 
+        message: "At least one image is required for the item",
+        errors: ["Please upload at least one image"]
+      });
+    }
+
     // Handle uploaded images - create media records
-    if (req.files && req.files.length > 0) {
-      const mediaIds = [];
+    const mediaIds = [];
 
-      for (const file of req.files) {
-        // Create media record for each uploaded file
-        const mediaData = {
-          filename: file.filename,
-          originalName: file.originalname,
-          url: `http://localhost:${process.env.PORT || 5000}/uploads/${file.filename}`,
-          mimeType: file.mimetype,
-          size: file.size,
-          uploadedBy: adminId,
-          altText: req.body.altText || "",
-          tags: req.body.tags
-            ? (typeof req.body.tags === 'string' ? req.body.tags.split(",").map((tag) => tag.trim()) : req.body.tags)
-            : [],
+    for (const file of req.files) {
+      // Create media record for each uploaded file
+      const mediaData = {
+        filename: file.filename,
+        originalName: file.originalname,
+        url: `http://localhost:${process.env.PORT || 5000}/uploads/${file.filename}`,
+        mimeType: file.mimetype,
+        size: file.size,
+        uploadedBy: adminId,
+        altText: req.body.altText || "",
+        tags: req.body.tags
+          ? (typeof req.body.tags === 'string' ? req.body.tags.split(",").map((tag) => tag.trim()) : req.body.tags)
+          : [],
+      };
+
+      // Add image metadata if it's an image
+      if (file.mimetype.startsWith("image/")) {
+        mediaData.metadata = {
+          format: file.mimetype.split("/")[1],
         };
-
-        // Add image metadata if it's an image
-        if (file.mimetype.startsWith("image/")) {
-          mediaData.metadata = {
-            format: file.mimetype.split("/")[1],
-          };
-        }
-
-        const media = new Media(mediaData);
-        await media.save();
-        mediaIds.push(media._id);
       }
 
-      itemData.images = mediaIds;
-      console.log(`Created ${mediaIds.length} media records for item`);
-    } else {
-      console.log("No files uploaded");
+      const media = new Media(mediaData);
+      await media.save();
+      mediaIds.push(media._id);
     }
+
+    itemData.images = mediaIds;
+    console.log(`Created ${mediaIds.length} media records for item`);
 
     // Validate category exists
     if (itemData.category) {
@@ -160,9 +164,25 @@ export const edit = async (req, res) => {
     const updateData = req.body;
     const adminId = req.admin._id;
 
-    // Get existing item to access old images
-    const existingItem = await Item.findById(id).select("images");
+    // Get existing item to check current saleType and images
+    const existingItem = await Item.findById(id).select("saleType price rentPrice images");
     const oldImageIds = existingItem?.images || [];
+    
+    // Handle saleType changes - clear irrelevant price fields
+    if (updateData.saleType) {
+      if (updateData.saleType === "sale") {
+        // Remove rentPrice and depositPrice if switching to sale only
+        updateData.rentPrice = undefined;
+        updateData.depositPrice = 0;
+      } else if (updateData.saleType === "rent") {
+        // Remove price if switching to rent only
+        updateData.price = undefined;
+      }
+      // If switching to "both", keep both prices (they should be provided)
+    } else if (existingItem) {
+      // If saleType is not being updated, use existing saleType for validation
+      updateData.saleType = existingItem.saleType;
+    }
 
     // Handle uploaded images - create media records
     if (req.files && req.files.length > 0) {

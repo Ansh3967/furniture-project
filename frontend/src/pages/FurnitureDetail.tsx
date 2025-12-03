@@ -65,7 +65,7 @@ const FurnitureDetail = () => {
         .map((img: any) => (typeof img === "string" ? img : img.url))
         .filter(Boolean)
     : [];
-  const images = imageUrls.length > 0 ? imageUrls : ["/placeholder.svg"];
+  const images = imageUrls.length > 0 ? imageUrls : [];
 
   const handleAddToCart = (type: "sell" | "rent") => {
     if (!item) return;
@@ -192,32 +192,42 @@ const FurnitureDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images */}
           <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-              <img
-                src={images[selectedImage]}
-                alt={item.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            {images.length > 0 ? (
+              <>
+                <div className="aspect-square overflow-hidden rounded-lg bg-muted">
+                  <img
+                    src={images[selectedImage]}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
 
-            {images.length > 1 && (
-              <div className="flex gap-2">
-                {images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                      selectedImage === index
-                        ? "border-primary"
-                        : "border-border"
-                    }`}>
-                    <img
-                      src={image}
-                      alt={`${item.name} ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
+                {images.length > 1 && (
+                  <div className="flex gap-2">
+                    {images.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImage(index)}
+                        className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                          selectedImage === index
+                            ? "border-primary"
+                            : "border-border"
+                        }`}>
+                        <img
+                          src={image}
+                          alt={`${item.name} ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="aspect-square overflow-hidden rounded-lg bg-muted flex items-center justify-center">
+                <p className="text-muted-foreground text-center px-4">
+                  No image available for this item
+                </p>
               </div>
             )}
           </div>

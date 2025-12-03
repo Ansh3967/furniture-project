@@ -55,8 +55,20 @@ export const edit = {
   category: Joi.string().hex().length(24),
   availability: Joi.string().valid("available", "out_of_stock", "discontinued"),
   saleType: Joi.string().valid("sale", "rent", "both"),
-  price: Joi.number().min(0),
-  rentPrice: Joi.number().min(0),
+  price: Joi.number()
+    .min(0)
+    .when("saleType", {
+      is: Joi.string().valid("sale", "both"),
+      then: Joi.required(),
+      otherwise: Joi.optional().allow(null, ""),
+    }),
+  rentPrice: Joi.number()
+    .min(0)
+    .when("saleType", {
+      is: Joi.string().valid("rent", "both"),
+      then: Joi.required(),
+      otherwise: Joi.optional().allow(null, ""),
+    }),
   depositPrice: Joi.number().min(0),
   images: Joi.array().items(Joi.string().hex().length(24)),
   specifications: Joi.object({
