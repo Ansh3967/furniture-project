@@ -2,6 +2,8 @@ import Item from "../../../models/item.model.js";
 import Category from "../../../models/category.model.js";
 import Media from "../../../models/media.model.js";
 import mongoose from "mongoose";
+import fs from "fs";
+import path from "path";
 
 // List all items with filtering and pagination
 export const list = async (req, res) => {
@@ -95,13 +97,13 @@ export const add = async (req, res) => {
         const mediaData = {
           filename: file.filename,
           originalName: file.originalname,
-          url: `http://localhost:${process.env.PORT}/uploads/${file.filename}`,
+          url: `http://localhost:${process.env.PORT || 5000}/uploads/${file.filename}`,
           mimeType: file.mimetype,
           size: file.size,
           uploadedBy: adminId,
           altText: req.body.altText || "",
           tags: req.body.tags
-            ? req.body.tags.split(",").map((tag) => tag.trim())
+            ? (typeof req.body.tags === 'string' ? req.body.tags.split(",").map((tag) => tag.trim()) : req.body.tags)
             : [],
         };
 
@@ -118,6 +120,9 @@ export const add = async (req, res) => {
       }
 
       itemData.images = mediaIds;
+      console.log(`Created ${mediaIds.length} media records for item`);
+    } else {
+      console.log("No files uploaded");
     }
 
     // Validate category exists
@@ -155,6 +160,10 @@ export const edit = async (req, res) => {
     const updateData = req.body;
     const adminId = req.admin._id;
 
+    // Get existing item to access old images
+    const existingItem = await Item.findById(id).select("images");
+    const oldImageIds = existingItem?.images || [];
+
     // Handle uploaded images - create media records
     if (req.files && req.files.length > 0) {
       const mediaIds = [];
@@ -164,13 +173,13 @@ export const edit = async (req, res) => {
         const mediaData = {
           filename: file.filename,
           originalName: file.originalname,
-          url: `http://localhost:${process.env.PORT}/uploads/${file.filename}`,
+          url: `http://localhost:${process.env.PORT || 5000}/uploads/${file.filename}`,
           mimeType: file.mimetype,
           size: file.size,
           uploadedBy: adminId,
           altText: req.body.altText || "",
           tags: req.body.tags
-            ? req.body.tags.split(",").map((tag) => tag.trim())
+            ? (typeof req.body.tags === 'string' ? req.body.tags.split(",").map((tag) => tag.trim()) : req.body.tags)
             : [],
         };
 
@@ -186,7 +195,37 @@ export const edit = async (req, res) => {
         mediaIds.push(media._id);
       }
 
+      // Replace old images with new ones
       updateData.images = mediaIds;
+      console.log(`Replaced ${oldImageIds.length} old images with ${mediaIds.length} new images`);
+
+      // Delete old media files and records
+      if (oldImageIds.length > 0) {
+        for (const oldImageId of oldImageIds) {
+          try {
+            const oldMedia = await Media.findById(oldImageId);
+            if (oldMedia) {
+              // Delete file from filesystem
+              const filePath = path.join(process.cwd(), "uploads", oldMedia.filename);
+              if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                console.log(`Deleted old file: ${oldMedia.filename}`);
+              }
+              // Delete media record from database
+              await Media.findByIdAndDelete(oldImageId);
+              console.log(`Deleted old media record: ${oldImageId}`);
+            }
+          } catch (error) {
+            console.error(`Error deleting old media ${oldImageId}:`, error.message);
+            // Continue with other deletions even if one fails
+          }
+        }
+      }
+    } else {
+      // If no new files, keep existing images
+      if (!updateData.images) {
+        updateData.images = oldImageIds;
+      }
     }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {

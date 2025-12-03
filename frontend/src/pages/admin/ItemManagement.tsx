@@ -177,33 +177,40 @@ const ItemManagement = () => {
         return;
       }
 
-      // Create item data object
-      const itemData: any = {
-        name: formData.title, // Backend expects 'name' not 'title'
-        description: formData.description,
-        category: formData.category, // This should be a category ID
-        availability: (formData.availability ? "available" : "out_of_stock") as
-          | "available"
-          | "out_of_stock",
-        saleType:
-          formData.type === "sell"
-            ? "sale"
-            : formData.type === "rent"
-            ? "rent"
-            : "both",
-        price: formData.price || undefined,
-        rentPrice: formData.rentPrice || undefined,
-        depositPrice: formData.deposit || 0,
-        condition: "new",
-        isFeatured: false,
-        viewCount: 0,
-      };
+      // Create FormData to handle file uploads
+      const formDataToSend = new FormData();
+      
+      // Append text fields
+      formDataToSend.append("name", formData.title);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("availability", formData.availability ? "available" : "out_of_stock");
+      formDataToSend.append("saleType", formData.type === "sell" ? "sale" : formData.type === "rent" ? "rent" : "both");
+      
+      if (formData.price) formDataToSend.append("price", formData.price.toString());
+      if (formData.rentPrice) formDataToSend.append("rentPrice", formData.rentPrice.toString());
+      formDataToSend.append("depositPrice", (formData.deposit || 0).toString());
+      formDataToSend.append("condition", "new");
+      formDataToSend.append("isFeatured", "false");
+      formDataToSend.append("viewCount", "0");
+      
+      // Append image files
+      if (formData.images && formData.images.length > 0) {
+        formData.images.forEach((file) => {
+          formDataToSend.append("images", file);
+        });
+      }
 
-      console.log("Creating item with data:", itemData);
+      console.log("Creating item with data:", {
+        name: formData.title,
+        description: formData.description,
+        category: formData.category,
+        imagesCount: formData.images.length
+      });
       console.log("Available categories:", categories);
 
-      // API call to add item
-      const response = await adminService.createItem(itemData);
+      // API call to add item with FormData
+      const response = await adminService.createItem(formDataToSend);
       const newItem = response.item;
 
       // Transform the response to match frontend structure
@@ -286,27 +293,29 @@ const ItemManagement = () => {
         return;
       }
 
-      // Create item data object
-      const itemData: any = {
-        name: formData.title, // Backend expects 'name' not 'title'
-        description: formData.description,
-        category: formData.category, // This should be a category ID
-        availability: (formData.availability ? "available" : "out_of_stock") as
-          | "available"
-          | "out_of_stock",
-        saleType:
-          formData.type === "sell"
-            ? "sale"
-            : formData.type === "rent"
-            ? "rent"
-            : "both",
-        price: formData.price || undefined,
-        rentPrice: formData.rentPrice || undefined,
-        depositPrice: formData.deposit || 0,
-      };
+      // Create FormData to handle file uploads
+      const formDataToSend = new FormData();
+      
+      // Append text fields
+      formDataToSend.append("name", formData.title);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("availability", formData.availability ? "available" : "out_of_stock");
+      formDataToSend.append("saleType", formData.type === "sell" ? "sale" : formData.type === "rent" ? "rent" : "both");
+      
+      if (formData.price) formDataToSend.append("price", formData.price.toString());
+      if (formData.rentPrice) formDataToSend.append("rentPrice", formData.rentPrice.toString());
+      formDataToSend.append("depositPrice", (formData.deposit || 0).toString());
+      
+      // Append image files if any new images are uploaded
+      if (formData.images && formData.images.length > 0) {
+        formData.images.forEach((file) => {
+          formDataToSend.append("images", file);
+        });
+      }
 
-      // API call to update item
-      const response = await adminService.updateItem(editingItem._id, itemData);
+      // API call to update item with FormData
+      const response = await adminService.updateItem(editingItem._id, formDataToSend);
       const updatedItem = response.item;
 
       // Transform the response to match frontend structure
