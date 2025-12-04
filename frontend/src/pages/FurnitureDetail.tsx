@@ -16,6 +16,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useApp } from "@/contexts/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -69,6 +71,28 @@ const FurnitureDetail = () => {
 
   const handleAddToCart = (type: "sell" | "rent") => {
     if (!item) return;
+    
+    // Check quantity availability
+    const availableQuantity = item.quantity || 0;
+    if (availableQuantity < quantity) {
+      toast({
+        title: "Insufficient quantity",
+        description: `Only ${availableQuantity} item(s) available. Please adjust your quantity.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if item is available
+    if (item.availability !== "available" || availableQuantity === 0) {
+      toast({
+        title: "Item unavailable",
+        description: "This item is currently out of stock.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     dispatch({
       type: "ADD_TO_CART",
       payload: {
@@ -280,6 +304,46 @@ const FurnitureDetail = () => {
 
             {/* Pricing */}
             <div className="space-y-4">
+              {/* Quantity Selector */}
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <Label htmlFor="quantity-select" className="text-base font-medium">
+                    Quantity
+                  </Label>
+                  <span className="text-sm text-muted-foreground">
+                    {item.quantity || 0} available
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}>
+                    -
+                  </Button>
+                  <Input
+                    id="quantity-select"
+                    type="number"
+                    min="1"
+                    max={item.quantity || 0}
+                    value={quantity}
+                    onChange={(e) => {
+                      const val = Math.max(1, Math.min(item.quantity || 0, parseInt(e.target.value) || 1));
+                      setQuantity(val);
+                    }}
+                    className="w-20 text-center"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuantity(Math.min(item.quantity || 0, quantity + 1))}
+                    disabled={quantity >= (item.quantity || 0)}>
+                    +
+                  </Button>
+                </div>
+              </div>
+
               {item.price && (
                 <div className="p-4 border rounded-lg">
                   <div className="flex justify-between items-center mb-2">
@@ -293,7 +357,8 @@ const FurnitureDetail = () => {
                   <Button
                     size="lg"
                     className="w-full bg-gradient-primary hover:opacity-90"
-                    onClick={() => handleAddToCart("sell")}>
+                    onClick={() => handleAddToCart("sell")}
+                    disabled={!item.quantity || item.quantity === 0 || item.availability !== "available"}>
                     <ShoppingCart className="w-5 h-5 mr-2" />
                     Add to Cart - Buy
                   </Button>
@@ -322,7 +387,8 @@ const FurnitureDetail = () => {
                     size="lg"
                     variant="outline"
                     className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => handleAddToCart("rent")}>
+                    onClick={() => handleAddToCart("rent")}
+                    disabled={!item.quantity || item.quantity === 0 || item.availability !== "available"}>
                     <Calendar className="w-5 h-5 mr-2" />
                     Add to Cart - Rent
                   </Button>

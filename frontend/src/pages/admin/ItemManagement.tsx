@@ -77,6 +77,7 @@ interface Item {
   images: string[];
   rating: number;
   reviewCount: number;
+  quantity: number;
   createdAt: string;
 }
 
@@ -99,6 +100,7 @@ const ItemManagement = () => {
     type: "sell" as "sell" | "rent" | "both",
     availability: true,
     images: [] as File[],
+    quantity: 0,
   });
   const { toast } = useToast();
 
@@ -142,6 +144,7 @@ const ItemManagement = () => {
             images: Array.isArray(it.images) ? it.images : [],
             rating: it.rating ?? 0,
             reviewCount: it.reviewCount ?? 0,
+            quantity: it.quantity ?? 0,
             createdAt: it.createdAt ?? "",
           })
         );
@@ -236,6 +239,7 @@ const ItemManagement = () => {
       formDataToSend.append("condition", "new");
       formDataToSend.append("isFeatured", "false");
       formDataToSend.append("viewCount", "0");
+      formDataToSend.append("quantity", (formData.quantity || 0).toString());
       
       // Append image files
       if (formData.images && formData.images.length > 0) {
@@ -278,6 +282,7 @@ const ItemManagement = () => {
         images: newItem.images && newItem.images.length > 0 ? newItem.images : [],
         rating: 0,
         reviewCount: 0,
+        quantity: newItem.quantity ?? 0,
         createdAt: newItem.createdAt,
       };
 
@@ -293,6 +298,7 @@ const ItemManagement = () => {
         type: "sell",
         availability: true,
         images: [],
+        quantity: 0,
       });
 
       toast({
@@ -385,6 +391,7 @@ const ItemManagement = () => {
       formDataToSend.append("saleType", formData.type === "sell" ? "sale" : formData.type === "rent" ? "rent" : "both");
       
       // Append price fields based on type
+      // Frontend validation ensures these are valid, so we can safely send them
       if (formData.type === "sell" || formData.type === "both") {
         formDataToSend.append("price", formData.price.toString());
       }
@@ -392,6 +399,7 @@ const ItemManagement = () => {
         formDataToSend.append("rentPrice", formData.rentPrice.toString());
         formDataToSend.append("depositPrice", (formData.deposit || 0).toString());
       }
+      formDataToSend.append("quantity", (formData.quantity || 0).toString());
       
       // Append image files if any new images are uploaded
       if (formData.images && formData.images.length > 0) {
@@ -426,6 +434,7 @@ const ItemManagement = () => {
         images: updatedItem.images || editingItem.images,
         rating: editingItem.rating,
         reviewCount: editingItem.reviewCount,
+        quantity: updatedItem.quantity ?? editingItem.quantity ?? 0,
         createdAt: updatedItem.createdAt,
       };
 
@@ -447,6 +456,7 @@ const ItemManagement = () => {
         type: "sell",
         availability: true,
         images: [],
+        quantity: 0,
       });
 
       toast({
@@ -562,6 +572,7 @@ const ItemManagement = () => {
       type: item.type,
       availability: item.availability,
       images: [],
+      quantity: item.quantity || 0,
     });
     setIsEditDialogOpen(true);
   };
@@ -741,6 +752,23 @@ const ItemManagement = () => {
                       />
                     </div>
                   )}
+                </div>
+                <div>
+                  <Label htmlFor="quantity">Quantity *</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    min="0"
+                    value={formData.quantity}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        quantity: Number(e.target.value),
+                      })
+                    }
+                    placeholder="0"
+                    required
+                  />
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -1116,6 +1144,23 @@ const ItemManagement = () => {
                     />
                   </div>
                 )}
+              </div>
+              <div>
+                <Label htmlFor="edit-quantity">Quantity *</Label>
+                <Input
+                  id="edit-quantity"
+                  type="number"
+                  min="0"
+                  value={formData.quantity}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      quantity: Number(e.target.value),
+                    })
+                  }
+                  placeholder="0"
+                  required
+                />
               </div>
               <div className="flex items-center space-x-2">
                 <Switch

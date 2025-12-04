@@ -69,6 +69,7 @@ export const add = {
     .default("new"),
   tags: Joi.array().items(Joi.string()),
   isFeatured: Joi.boolean().default(false),
+  quantity: Joi.number().integer().min(0).default(0),
 };
 
 export const edit = {
@@ -101,6 +102,7 @@ export const edit = {
   condition: Joi.string().valid("new", "like_new", "good", "fair"),
   tags: Joi.array().items(Joi.string()),
   isFeatured: Joi.boolean(),
+  quantity: Joi.number().integer().min(0),
 };
 
 export const remove = {

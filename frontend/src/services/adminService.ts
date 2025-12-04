@@ -59,6 +59,7 @@ export interface Item {
   tags: string[];
   isFeatured: boolean;
   viewCount: number;
+  quantity: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -93,6 +94,7 @@ export interface ItemCreateData {
   condition?: "new" | "like_new" | "good" | "fair";
   tags?: string[];
   isFeatured?: boolean;
+  quantity?: number;
 }
 
 // User interfaces
@@ -230,11 +232,40 @@ export const adminService = {
   },
 
   updateItem: async (id: string, data: Partial<ItemCreateData> | FormData) => {
-    const response = await adminApi.put(`/admin/items/${id}`, data, {
-      headers: data instanceof FormData ? {
-        'Content-Type': 'multipart/form-data',
-      } : {}
-    });
+    // Convert simple JSON updates to FormData since backend expects multipart/form-data
+    // The backend uses multer which requires multipart/form-data format
+    let formData: FormData;
+    
+    if (data instanceof FormData) {
+      formData = data;
+    } else {
+      // Convert JSON object to FormData for simple field updates
+      formData = new FormData();
+      Object.keys(data).forEach((key) => {
+        const value = (data as any)[key];
+        if (value !== undefined && value !== null) {
+          if (Array.isArray(value)) {
+            // Handle arrays (like features, tags)
+            value.forEach((item) => {
+              formData.append(key, typeof item === 'string' ? item : JSON.stringify(item));
+            });
+          } else if (typeof value === 'object' && !(value instanceof File) && !(value instanceof Blob)) {
+            // Handle nested objects (like specifications)
+            formData.append(key, JSON.stringify(value));
+          } else if (typeof value === 'boolean') {
+            // Handle booleans
+            formData.append(key, value.toString());
+          } else {
+            // Handle primitives (string, number)
+            formData.append(key, String(value));
+          }
+        }
+      });
+    }
+    
+    // Don't set Content-Type header manually - let the browser set it with boundary
+    // This is important for multipart/form-data
+    const response = await adminApi.put(`/admin/items/${id}`, formData);
     return response.data;
   },
 

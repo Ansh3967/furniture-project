@@ -11,10 +11,34 @@ const validate = (schema) => {
     // Convert string values to appropriate types for multipart data
     if (isMultipart && req.body) {
       // Convert numeric strings to numbers
-      if (req.body.price) req.body.price = parseFloat(req.body.price) || undefined;
-      if (req.body.rentPrice) req.body.rentPrice = parseFloat(req.body.rentPrice) || undefined;
-      if (req.body.depositPrice) req.body.depositPrice = parseFloat(req.body.depositPrice) || 0;
-      if (req.body.viewCount) req.body.viewCount = parseInt(req.body.viewCount) || 0;
+      // Only convert if the field exists and is not empty
+      if (req.body.price !== undefined && req.body.price !== '') {
+        const price = parseFloat(req.body.price);
+        req.body.price = isNaN(price) ? undefined : price;
+      } else if (req.body.price === '') {
+        // Remove empty string fields so they're not validated
+        delete req.body.price;
+      }
+      
+      if (req.body.rentPrice !== undefined && req.body.rentPrice !== '') {
+        const rentPrice = parseFloat(req.body.rentPrice);
+        req.body.rentPrice = isNaN(rentPrice) ? undefined : rentPrice;
+      } else if (req.body.rentPrice === '') {
+        delete req.body.rentPrice;
+      }
+      
+      if (req.body.depositPrice !== undefined && req.body.depositPrice !== '') {
+        req.body.depositPrice = parseFloat(req.body.depositPrice) || 0;
+      }
+      
+      if (req.body.viewCount !== undefined && req.body.viewCount !== '') {
+        req.body.viewCount = parseInt(req.body.viewCount) || 0;
+      }
+      
+      if (req.body.quantity !== undefined && req.body.quantity !== '') {
+        req.body.quantity = parseInt(req.body.quantity) || 0;
+      }
+      
       // Convert boolean strings
       if (req.body.isFeatured !== undefined) req.body.isFeatured = req.body.isFeatured === 'true';
     }

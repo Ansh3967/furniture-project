@@ -15,6 +15,30 @@ export const createOrder = async (req, res) => {
         .json({ message: "Order must contain at least one item" });
     }
 
+    // Check quantity availability and decrement quantities
+    const itemUpdates = [];
+    for (const orderItem of items) {
+      const item = await Item.findById(orderItem.furnitureId);
+      if (!item) {
+        return res.status(404).json({ 
+          message: `Item ${orderItem.name} not found` 
+        });
+      }
+
+      // Check if sufficient quantity is available
+      if (item.quantity < orderItem.quantity) {
+        return res.status(400).json({ 
+          message: `Insufficient quantity for ${orderItem.name}. Available: ${item.quantity}, Requested: ${orderItem.quantity}` 
+        });
+      }
+
+      // Prepare quantity update
+      itemUpdates.push({
+        itemId: item._id,
+        quantity: item.quantity - orderItem.quantity,
+      });
+    }
+
     // Generate unique order number
     const orderNumber = `ORD-${Date.now()}-${Math.random()
       .toString(36)
@@ -45,6 +69,14 @@ export const createOrder = async (req, res) => {
     });
 
     await order.save();
+
+    // Update item quantities after order is saved
+    for (const update of itemUpdates) {
+      await Item.findByIdAndUpdate(update.itemId, { 
+        quantity: update.quantity,
+        availability: update.quantity === 0 ? "out_of_stock" : "available"
+      });
+    }
 
     // Populate the order with user and item details
     const populatedOrder = await Order.findById(order._id)
@@ -135,6 +167,18 @@ export const cancelOrder = async (req, res) => {
       return res.status(400).json({
         message: "Order cannot be cancelled at this stage",
       });
+    }
+
+    // Restore item quantities when order is cancelled
+    for (const orderItem of order.items) {
+      const item = await Item.findById(orderItem.item);
+      if (item) {
+        const newQuantity = item.quantity + orderItem.quantity;
+        await Item.findByIdAndUpdate(orderItem.item, {
+          quantity: newQuantity,
+          availability: newQuantity > 0 ? "available" : "out_of_stock"
+        });
+      }
     }
 
     order.status = "cancelled";

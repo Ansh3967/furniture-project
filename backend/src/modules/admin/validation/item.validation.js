@@ -13,14 +13,14 @@ export const add = {
     .when("saleType", {
       is: Joi.string().valid("sale", "both"),
       then: Joi.required(),
-      otherwise: Joi.optional(),
+      otherwise: Joi.optional().allow(null, ""),
     }),
   rentPrice: Joi.number()
     .min(0)
     .when("saleType", {
       is: Joi.string().valid("rent", "both"),
       then: Joi.required(),
-      otherwise: Joi.optional(),
+      otherwise: Joi.optional().allow(null, ""),
     }),
   depositPrice: Joi.number().min(0).default(0),
   images: Joi.array().items(Joi.string().hex().length(24)).default([]),
@@ -47,6 +47,7 @@ export const add = {
   tags: Joi.array().items(Joi.string()),
   isFeatured: Joi.boolean().default(false),
   viewCount: Joi.number().min(0).default(0),
+  quantity: Joi.number().integer().min(0).default(0),
 };
 
 export const edit = {
@@ -92,6 +93,7 @@ export const edit = {
   tags: Joi.array().items(Joi.string()),
   isFeatured: Joi.boolean(),
   viewCount: Joi.number().min(0),
+  quantity: Joi.number().integer().min(0),
 };
 
 export const list = {

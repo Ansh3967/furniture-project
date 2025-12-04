@@ -49,9 +49,9 @@ const FurnitureListing = () => {
         // Fetch categories
         const categoriesResponse = await categoryService.getCategories();
         setCategories(categoriesResponse);
-
         // Fetch items
         const itemsResponse = await itemService.getItems();
+        console.log(itemsResponse);
         setItems(itemsResponse.items);
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -67,9 +67,10 @@ const FurnitureListing = () => {
   }, []);
   const [localPriceRange, setLocalPriceRange] = useState(state.priceRange);
 
-  // Get furniture with images
+  // Get furniture with images and valid records
   const furnitureWithImages = useMemo(() => {
     return items.map((item) => {
+      
       const imageUrls = Array.isArray(item.images)
         ? item.images
             .map((img: any) => {
@@ -81,10 +82,12 @@ const FurnitureListing = () => {
             .filter((url): url is string => Boolean(url))
         : [];
 
+      
       // Only use images from backend, no fallback images
       const finalImages = imageUrls.length > 0 ? imageUrls : [];
 
       // DO NOT set default 0 for price, rentPrice, deposit, depositPrice
+      // Don't skip any record here; all records will be included (filtering is in filteredFurniture)
       return {
         ...item,
         id: item._id,
@@ -106,15 +109,17 @@ const FurnitureListing = () => {
     });
   }, [items]);
 
-  // Filter and sort furniture
+  // Filter and sort furniture - change so it never filters out any record entirely
   const filteredFurniture = useMemo(() => {
+    // Instead of filtering out any items that don't have price and/or rentPrice, always show all records.
+    // But, show Price, Buy button, etc., only where logically applicable!
     let filtered = furnitureWithImages.filter((item) => {
       // Search filter
       if (
         state.searchQuery &&
-        !item.title.toLowerCase().includes(state.searchQuery.toLowerCase()) &&
+        !item.title?.toLowerCase().includes(state.searchQuery.toLowerCase()) &&
         !item.description
-          .toLowerCase()
+          ?.toLowerCase()
           .includes(state.searchQuery.toLowerCase())
       ) {
         return false;
@@ -135,33 +140,36 @@ const FurnitureListing = () => {
       }
 
       // Price filter
-      // Only filter if price/rentPrice available; if both undefined, exclude from view
-      const price =
-        typeof item.price === "number"
-          ? item.price
-          : typeof item.rentPrice === "number"
-          ? item.rentPrice
-          : undefined;
-
-      if (typeof price !== "number") {
-        // if neither price nor rentPrice present, exclude item from results
-        return false;
+      // Only filter on price if price exists for sell, or rentPrice exists for rent
+      // Price range applies according to how the item can be bought/rented
+      let show = false;
+      if ((item.type === "sell" || item.type === "both") && typeof item.price === "number") {
+        if (item.price >= state.priceRange[0] && item.price <= state.priceRange[1]) {
+          show = true;
+        }
       }
-      if (price < state.priceRange[0] || price > state.priceRange[1]) {
-        return false;
+      if ((item.type === "rent" || item.type === "both") && typeof item.rentPrice === "number") {
+        if (item.rentPrice >= state.priceRange[0] && item.rentPrice <= state.priceRange[1]) {
+          show = true;
+        }
       }
-
-      return true;
+      // If neither price nor rentPrice match the range, filter out
+      return show;
     });
 
     // Sort
     filtered.sort((a: any, b: any) => {
-      const getNum = (item: any) =>
-        typeof item.price === "number"
-          ? item.price
-          : typeof item.rentPrice === "number"
-          ? item.rentPrice
-          : Number.POSITIVE_INFINITY;
+      // For sorting, use the price or rentPrice accordingly (lowest found on each product)
+      const getNum = (item: any) => {
+        const priceArr: number[] = [];
+        if ((item.type === "sell" || item.type === "both") && typeof item.price === "number") {
+          priceArr.push(item.price);
+        }
+        if ((item.type === "rent" || item.type === "both") && typeof item.rentPrice === "number") {
+          priceArr.push(item.rentPrice);
+        }
+        return priceArr.length > 0 ? Math.min(...priceArr) : Number.POSITIVE_INFINITY;
+      };
 
       switch (sortBy) {
         case "price-low":
@@ -435,7 +443,8 @@ const FurnitureListing = () => {
                           </span>
                         </div>
                       )}
-                      {typeof furniture.rentPrice === "number" && (
+                      {/* Only show rent price if type is "rent" or "both" and rentPrice is defined */}
+                      {(furniture.type === "rent" || furniture.type === "both") && typeof furniture.rentPrice === "number" && (
                         <div className="flex justify-between items-center">
                           <div>
                             <span className="text-lg font-bold text-accent">
@@ -466,7 +475,7 @@ const FurnitureListing = () => {
                         Buy
                       </Button>
                     )}
-                    {typeof furniture.rentPrice === "number" && (
+                    {(furniture.type === "rent" || furniture.type === "both") && typeof furniture.rentPrice === "number" && (
                       <Button
                         variant="outline"
                         size="sm"

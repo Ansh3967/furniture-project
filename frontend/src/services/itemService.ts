@@ -41,6 +41,7 @@ export interface Item {
   tags: string[];
   isFeatured: boolean;
   viewCount: number;
+  quantity: number;
   createdAt: string;
   updatedAt: string;
 }
