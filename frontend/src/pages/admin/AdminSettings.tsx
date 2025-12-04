@@ -64,7 +64,25 @@ const AdminSettings = () => {
     compactMode: false
   });
 
+  const handlePhoneChange = (value: string) => {
+    // Remove all non-numeric characters
+    const numericValue = value.replace(/\D/g, '');
+    // Limit to 10 digits
+    const limitedValue = numericValue.slice(0, 10);
+    setStoreSettings({ ...storeSettings, phone: limitedValue });
+  };
+
   const handleSave = async (section: string) => {
+    // Validate phone number for store settings
+    if (section === 'Store' && storeSettings.phone && storeSettings.phone.length !== 10) {
+      toast({
+        title: "Invalid phone number",
+        description: "Phone number must be exactly 10 digits.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     try {
       // Simulate API call
@@ -159,10 +177,16 @@ const AdminSettings = () => {
                   <Label htmlFor="storePhone">Phone Number</Label>
                   <Input
                     id="storePhone"
+                    type="tel"
                     value={storeSettings.phone}
-                    onChange={(e) => setStoreSettings({ ...storeSettings, phone: e.target.value })}
-                    placeholder="Enter phone number"
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    placeholder="Enter phone number (10 digits)"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
                   />
+                  {storeSettings.phone && storeSettings.phone.length !== 10 && (
+                    <p className="text-sm text-destructive mt-1">Phone number must be exactly 10 digits</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="storeCurrency">Currency</Label>

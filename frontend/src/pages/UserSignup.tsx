@@ -30,12 +30,32 @@ const UserSignup = () => {
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // Add phone number validation
+    if (field === 'phone') {
+      // Remove all non-numeric characters
+      const numericValue = value.toString().replace(/\D/g, '');
+      // Limit to 10 digits
+      const limitedValue = numericValue.slice(0, 10);
+      setFormData(prev => ({ ...prev, [field]: limitedValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    // Add phone validation
+    if (formData.phone.length !== 10) {
+      toast({
+        title: 'Invalid phone number',
+        description: 'Phone number must be exactly 10 digits.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
 
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
@@ -143,11 +163,16 @@ const UserSignup = () => {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Enter your phone number"
+                  placeholder="Enter your phone number (10 digits)"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   required
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                 />
+                {formData.phone && formData.phone.length !== 10 && (
+                  <p className="text-sm text-destructive">Phone number must be exactly 10 digits</p>
+                )}
               </div>
 
               <div className="space-y-2">

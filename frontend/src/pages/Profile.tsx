@@ -43,13 +43,32 @@ const Profile = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Add phone number validation
+    if (name === 'phone') {
+      // Remove all non-numeric characters
+      const numericValue = value.replace(/\D/g, '');
+      // Limit to 10 digits
+      const limitedValue = numericValue.slice(0, 10);
+      setFormData(prev => ({
+        ...prev,
+        [name]: limitedValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSave = async () => {
+    // Add phone validation
+    if (formData.phone && formData.phone.length !== 10) {
+      toast.error('Phone number must be exactly 10 digits');
+      return;
+    }
+    
     try {
       setLoading(true);
       const updatedUser = await authService.updateUserProfile(formData);
@@ -134,10 +153,17 @@ const Profile = () => {
                 <Input 
                   id="phone"
                   name="phone"
+                  type="tel"
                   value={formData.phone} 
                   onChange={handleInputChange}
                   readOnly={!isEditing}
+                  maxLength={10}
+                  pattern="[0-9]{10}"
+                  placeholder="Enter 10 digit phone number"
                 />
+                {isEditing && formData.phone && formData.phone.length !== 10 && (
+                  <p className="text-sm text-destructive">Phone number must be exactly 10 digits</p>
+                )}
               </div>
             </div>
             <div className="space-y-2">
