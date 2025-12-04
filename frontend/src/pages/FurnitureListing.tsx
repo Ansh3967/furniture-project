@@ -424,7 +424,8 @@ const FurnitureListing = () => {
                     </div>
 
                     <div className="space-y-2">
-                      {typeof furniture.price === "number" && (
+                      {/* Only show sell price if furniture.type is "sell" or "both" */}
+                      {(furniture.type === "sell" || furniture.type === "both") && typeof furniture.price === "number" && (
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-bold text-primary">
                             ₹{furniture.price}
@@ -455,7 +456,8 @@ const FurnitureListing = () => {
                   </CardContent>
 
                   <CardFooter className="p-4 pt-0 flex gap-2">
-                    {typeof furniture.price === "number" && (
+                    {/* Only show Buy button if type is "sell" or "both" and sell price exists */}
+                    {(furniture.type === "sell" || furniture.type === "both") && typeof furniture.price === "number" && (
                       <Button
                         size="sm"
                         onClick={() => handleAddToCart(furniture, "sell")}
