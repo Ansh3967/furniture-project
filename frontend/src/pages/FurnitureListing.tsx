@@ -74,7 +74,8 @@ const FurnitureListing = () => {
         ? item.images
             .map((img: any) => {
               if (typeof img === "string") return img;
-              if (img && typeof img === "object" && "url" in img) return img.url;
+              if (img && typeof img === "object" && "url" in img)
+                return img.url;
               return null;
             })
             .filter((url): url is string => Boolean(url))
@@ -83,20 +84,21 @@ const FurnitureListing = () => {
       // Only use images from backend, no fallback images
       const finalImages = imageUrls.length > 0 ? imageUrls : [];
 
+      // DO NOT set default 0 for price, rentPrice, deposit, depositPrice
       return {
         ...item,
         id: item._id,
         title: item.name,
         description: item.description,
-        category: item.category?.name || 'Unknown',
+        category: item.category?.name || "Unknown",
         type: item.saleType === "sale" ? "sell" : item.saleType,
         saleType: item.saleType, // Preserve saleType for conditional rendering
-        price: item.price || 0,
-        rentPrice: item.rentPrice || 0,
-        deposit: item.depositPrice || 0,
-        depositPrice: item.depositPrice || 0, // Preserve depositPrice for conditional rendering
-        availability: item.availability === 'available',
-        sellerId: 'admin', // Since items are created by admin
+        price: item.price, // Do not supply fallback value (no `|| 0`)
+        rentPrice: item.rentPrice, // Do not supply fallback value
+        deposit: item.depositPrice, // Do not supply fallback value
+        depositPrice: item.depositPrice, // Do not supply fallback value
+        availability: item.availability === "available",
+        sellerId: "admin", // Since items are created by admin
         rating: 0, // Default rating
         reviewCount: 0, // Default review count
         images: finalImages,
@@ -133,7 +135,18 @@ const FurnitureListing = () => {
       }
 
       // Price filter
-      const price = item.price || item.rentPrice || 0;
+      // Only filter if price/rentPrice available; if both undefined, exclude from view
+      const price =
+        typeof item.price === "number"
+          ? item.price
+          : typeof item.rentPrice === "number"
+          ? item.rentPrice
+          : undefined;
+
+      if (typeof price !== "number") {
+        // if neither price nor rentPrice present, exclude item from results
+        return false;
+      }
       if (price < state.priceRange[0] || price > state.priceRange[1]) {
         return false;
       }
@@ -143,11 +156,18 @@ const FurnitureListing = () => {
 
     // Sort
     filtered.sort((a: any, b: any) => {
+      const getNum = (item: any) =>
+        typeof item.price === "number"
+          ? item.price
+          : typeof item.rentPrice === "number"
+          ? item.rentPrice
+          : Number.POSITIVE_INFINITY;
+
       switch (sortBy) {
         case "price-low":
-          return (a.price || a.rentPrice || 0) - (b.price || b.rentPrice || 0);
+          return getNum(a) - getNum(b);
         case "price-high":
-          return (b.price || b.rentPrice || 0) - (a.price || a.rentPrice || 0);
+          return getNum(b) - getNum(a);
         case "rating":
           return 0;
         default:
@@ -404,7 +424,7 @@ const FurnitureListing = () => {
                     </div>
 
                     <div className="space-y-2">
-                      {furniture.price && (
+                      {typeof furniture.price === "number" && (
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-bold text-primary">
                             ₹{furniture.price}
@@ -414,13 +434,13 @@ const FurnitureListing = () => {
                           </span>
                         </div>
                       )}
-                      {furniture.rentPrice && (
+                      {typeof furniture.rentPrice === "number" && (
                         <div className="flex justify-between items-center">
                           <div>
                             <span className="text-lg font-bold text-accent">
                               ₹{furniture.rentPrice}/mo
                             </span>
-                            {furniture.depositPrice && (
+                            {typeof furniture.depositPrice === "number" && (
                               <span className="text-sm text-muted-foreground block">
                                 + ₹{furniture.depositPrice} deposit
                               </span>
@@ -435,7 +455,7 @@ const FurnitureListing = () => {
                   </CardContent>
 
                   <CardFooter className="p-4 pt-0 flex gap-2">
-                    {furniture.price && (
+                    {typeof furniture.price === "number" && (
                       <Button
                         size="sm"
                         onClick={() => handleAddToCart(furniture, "sell")}
@@ -444,7 +464,7 @@ const FurnitureListing = () => {
                         Buy
                       </Button>
                     )}
-                    {furniture.rentPrice && (
+                    {typeof furniture.rentPrice === "number" && (
                       <Button
                         variant="outline"
                         size="sm"
