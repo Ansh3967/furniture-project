@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { itemService, Item } from '@/services/itemService';
 
 const Wishlist = () => {
@@ -39,6 +39,14 @@ const Wishlist = () => {
   };
 
   const handleAddToCart = (item: Item) => {
+    // Helper to convert image to URL string
+    const getImageUrl = (img: string | { _id?: string; url: string; altText?: string } | undefined): string => {
+      if (!img) return '/placeholder.svg';
+      if (typeof img === 'string') return img;
+      if (typeof img === 'object' && 'url' in img) return img.url;
+      return '/placeholder.svg';
+    };
+    
     // Convert Item to Furniture format for cart
     const furniture = {
       id: item._id,
@@ -53,7 +61,9 @@ const Wishlist = () => {
       sellerId: 'admin',
       rating: 0,
       reviewCount: 0,
-      images: item.images && item.images.length > 0 ? item.images : ['/placeholder.svg'],
+      images: item.images && item.images.length > 0 
+        ? item.images.map(img => getImageUrl(img)).filter(Boolean)
+        : ['/placeholder.svg'],
     };
 
     dispatch({
@@ -67,7 +77,7 @@ const Wishlist = () => {
   };
 
   const handleBrowseFurniture = () => {
-    navigate('/');
+    navigate('/furniture');
   };
 
   return (
@@ -106,88 +116,120 @@ const Wishlist = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {wishlistItems.map((item) => (
-              <Card key={item._id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <div className="relative">
-                  <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg overflow-hidden">
-                    <img 
-                      src={item.images && item.images.length > 0 ? item.images[0] : '/placeholder.svg'} 
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-2 right-2 bg-white/90 hover:bg-red-500 hover:text-white transition-colors duration-200"
-                    onClick={() => handleRemoveFromWishlist(item._id)}
-                  >
-                    <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-                  </Button>
-                  {item.saleType === 'rent' && (
-                    <Badge className="absolute top-2 left-2 bg-green-500 text-white">
-                      For Rent
-                    </Badge>
-                  )}
-                </div>
-                
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-1">
-                    {item.name}
-                  </CardTitle>
-                  <CardDescription className="text-sm text-gray-600 line-clamp-2">
-                    {item.description}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium text-gray-900">0</span>
-                      <span className="text-sm text-gray-500">(0)</span>
+              <Card key={item._id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm relative">
+                <Link 
+                  to={`/furniture/${item._id}`}
+                  className="block cursor-pointer"
+                >
+                  <div className="relative">
+                    <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg overflow-hidden">
+                      {(() => {
+                        const getImageUrl = (img: string | { _id?: string; url: string; altText?: string } | undefined): string => {
+                          if (!img) return '/placeholder.svg';
+                          if (typeof img === 'string') return img;
+                          if (typeof img === 'object' && 'url' in img) return img.url;
+                          return '/placeholder.svg';
+                        };
+                        const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
+                        const imageUrl = firstImage ? getImageUrl(firstImage) : '/placeholder.svg';
+                        return (
+                          <img 
+                            src={imageUrl} 
+                            alt={item.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/placeholder.svg';
+                            }}
+                          />
+                        );
+                      })()}
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {item.category?.name || 'Unknown'}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {item.price && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Price:</span>
-                        <span className="font-bold text-lg text-green-600">
-                          ₹{item.price.toLocaleString()}
-                        </span>
-                      </div>
-                    )}
-                    {item.rentPrice && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Rent:</span>
-                        <span className="font-semibold text-blue-600">
-                          ₹{item.rentPrice}/month
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex space-x-2 mt-4">
-                    <Button 
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
-                      onClick={() => handleAddToCart(item)}
-                    >
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      Add to Cart
-                    </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="ghost"
                       size="sm"
-                      onClick={() => handleRemoveFromWishlist(item.id)}
-                      className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                      className="absolute top-2 right-2 bg-white/90 hover:bg-red-500 hover:text-white transition-colors duration-200 z-10"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemoveFromWishlist(item._id);
+                      }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Heart className="w-4 h-4 fill-red-500 text-red-500" />
                     </Button>
+                    {item.saleType === 'rent' && (
+                      <Badge className="absolute top-2 left-2 bg-green-500 text-white z-10">
+                        For Rent
+                      </Badge>
+                    )}
                   </div>
-                </CardContent>
+                  
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-1">
+                      {item.name}
+                    </CardTitle>
+                    <CardDescription className="text-sm text-gray-600 line-clamp-2">
+                      {item.description}
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-medium text-gray-900">0</span>
+                        <span className="text-sm text-gray-500">(0)</span>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {item.category?.name || 'Unknown'}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {item.price && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Price:</span>
+                          <span className="font-bold text-lg text-green-600">
+                            ₹{item.price.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      {item.rentPrice && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Rent:</span>
+                          <span className="font-semibold text-blue-600">
+                            ₹{item.rentPrice}/month
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Link>
+                
+                <div className="flex space-x-2 mt-4 px-6 pb-6" onClick={(e) => e.stopPropagation()}>
+                  <Button 
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAddToCart(item);
+                    }}
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Add to Cart
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleRemoveFromWishlist(item._id);
+                    }}
+                    className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>

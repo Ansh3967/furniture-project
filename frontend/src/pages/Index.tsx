@@ -14,7 +14,7 @@ import sofaPremium from '@/assets/sofa-premium.jpg';
 
 const Index = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [featuredItems, setFeaturedItems] = useState<Item[]>([]);
+  const [browseItems, setBrowseItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,9 +24,9 @@ const Index = () => {
         const categoriesResponse = await categoryService.getCategories();
         setCategories(categoriesResponse);
 
-        // Load featured items
-        const featuredResponse = await itemService.getFeaturedItems(8);
-        setFeaturedItems(featuredResponse);
+        // Load browse products (2-3 items)
+        const itemsResponse = await itemService.getItems({ limit: 3 });
+        setBrowseItems(itemsResponse.items || []);
       } catch (error) {
         console.error('Failed to load data:', error);
       } finally {
@@ -68,13 +68,13 @@ const Index = () => {
 
   const testimonials = [
     {
-      name: 'Sarah Johnson',
+      name: 'Ansh Anadani',
       rating: 5,
       comment: 'Exceptional quality and service. The rental option made furnishing my apartment so affordable!',
       role: 'Customer'
     },
     {
-      name: 'Michael Chen',
+      name: 'Krunal Shivhare',
       rating: 5,
       comment: 'Perfect for my startup office. Great selection and the team was incredibly helpful.',
       role: 'Business Owner'
@@ -217,77 +217,78 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Items Section */}
-      <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
-              Featured Furniture
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Discover our handpicked selection of premium furniture pieces
-            </p>
-          </div>
+      {/* Browse Products Section */}
+      {browseItems.length > 0 && (
+        <section className="py-20 bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-4">
+                Browse Products
+              </h2>
+              <p className="text-xl text-muted-foreground">
+                Explore our collection of premium furniture pieces
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {loading ? (
-              // Loading skeleton
-              Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="bg-gray-200 rounded-lg h-80 animate-pulse" />
-              ))
-            ) : featuredItems.length > 0 ? (
-              featuredItems.slice(0, 4).map((item, index) => {
-                // Fallback images array
-                const fallbackImages = [chairOffice, deskWalnut, heroLivingRoom, heroOffice, sofaPremium];
-                const displayImage = item.images && item.images.length > 0 
-                  ? item.images[0] 
-                  : fallbackImages[index % fallbackImages.length];
-                
-                return (
-                <Link key={item._id} to={`/furniture/${item._id}`}>
-                  <Card className="group hover:shadow-medium transition-shadow">
-                    <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
-                      <img
-                        src={displayImage}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.name}</h3>
-                      <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{item.description}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          {item.saleType === 'sale' && item.price && (
-                            <span className="text-lg font-bold text-primary">${item.price}</span>
-                          )}
-                          {item.saleType === 'rent' && item.rentPrice && (
-                            <span className="text-lg font-bold text-primary">${item.rentPrice}/mo</span>
-                          )}
-                          {item.saleType === 'both' && (
-                            <div className="flex flex-col">
-                              {item.price && <span className="text-sm font-bold text-primary">Buy: ${item.price}</span>}
-                              {item.rentPrice && <span className="text-sm font-bold text-primary">Rent: ${item.rentPrice}/mo</span>}
-                            </div>
-                          )}
-                        </div>
-                        <Badge variant={item.condition === 'new' ? 'default' : 'secondary'}>
-                          {item.condition}
-                        </Badge>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {loading ? (
+                // Loading skeleton
+                Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="bg-gray-200 rounded-lg h-80 animate-pulse" />
+                ))
+              ) : (
+                browseItems.map((item, index) => {
+                  // Fallback images array
+                  const fallbackImages = [chairOffice, deskWalnut, heroLivingRoom, heroOffice, sofaPremium];
+                  const getImageUrl = (img: string | { _id?: string; url: string; altText?: string } | undefined): string => {
+                    if (!img) return '';
+                    if (typeof img === 'string') return img;
+                    if (typeof img === 'object' && 'url' in img) return img.url;
+                    return '';
+                  };
+                  const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
+                  const displayImage = firstImage ? getImageUrl(firstImage) : fallbackImages[index % fallbackImages.length];
+                  
+                  return (
+                  <Link key={item._id} to={`/furniture/${item._id}`}>
+                    <Card className="group hover:shadow-medium transition-shadow">
+                      <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
+                        <img
+                          src={displayImage}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-                );
-              })
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">No featured items available at the moment.</p>
-              </div>
-            )}
-          </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.name}</h3>
+                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{item.description}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {item.saleType === 'sale' && item.price && (
+                              <span className="text-lg font-bold text-primary">${item.price}</span>
+                            )}
+                            {item.saleType === 'rent' && item.rentPrice && (
+                              <span className="text-lg font-bold text-primary">${item.rentPrice}/mo</span>
+                            )}
+                            {item.saleType === 'both' && (
+                              <div className="flex flex-col">
+                                {item.price && <span className="text-sm font-bold text-primary">Buy: ${item.price}</span>}
+                                {item.rentPrice && <span className="text-sm font-bold text-primary">Rent: ${item.rentPrice}/mo</span>}
+                              </div>
+                            )}
+                          </div>
+                          <Badge variant={item.condition === 'new' ? 'default' : 'secondary'}>
+                            {item.condition}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                  );
+                })
+              )}
+            </div>
 
-          {featuredItems.length > 0 && (
             <div className="text-center mt-12">
               <Link to="/furniture">
                 <Button size="lg" className="bg-gradient-primary hover:opacity-90">
@@ -296,9 +297,9 @@ const Index = () => {
                 </Button>
               </Link>
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       {/* Testimonials Section */}
       <section className="py-20 bg-card">
@@ -346,7 +347,7 @@ const Index = () => {
                 Start Shopping
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
+            <Button size="lg" variant="outline" className="bg-white/10 backdrop-blur-sm text-primary-foreground border-2 border-primary-foreground hover:bg-primary-foreground hover:text-primary opacity-100" asChild>
               <Link to="/signup">
                 Join FurnishHome
               </Link>
