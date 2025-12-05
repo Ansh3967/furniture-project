@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Eye, Package, Calendar, DollarSign, User, Edit, Save, X } from 'lucide-react';
+import { Search, Filter, Eye, Package, Calendar, User, Edit, Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { adminService, Order } from '@/services/adminService';
 
@@ -341,8 +341,7 @@ const OrderManagement = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{order.total.toLocaleString()}</span>
+                      <span className="font-medium">₹{order.total.toLocaleString()}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -608,7 +607,7 @@ const OrderManagement = () => {
                           Quantity: {item.quantity} | Type: {item.type}
                         </p>
                       </div>
-                      <p className="font-medium">${item.price}</p>
+                      <p className="font-medium">₹{item.price}</p>
                     </div>
                   ))}
                 </div>
@@ -692,7 +691,7 @@ const OrderManagement = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Total Amount</label>
-                  <p className="text-lg font-bold">${editingOrder.total.toLocaleString()}</p>
+                  <p className="text-lg font-bold">₹{editingOrder.total.toLocaleString()}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Order Date</label>

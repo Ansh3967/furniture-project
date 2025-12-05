@@ -6,7 +6,7 @@ export const register = {
   email: Joi.string().email().required(),
   password: Joi.string().required(),
   phone: Joi.string().required(),
-  address: Joi.string().allow(''),
+  address: Joi.string().required(),
 };
 
 export const login = {
