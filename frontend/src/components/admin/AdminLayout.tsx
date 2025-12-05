@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import { Button } from "@/components/ui/button";
@@ -11,42 +11,97 @@ import { adminService, Admin } from "@/services/adminService";
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [admin, setAdmin] = useState<Admin | null>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const notifBtnRef = useRef<HTMLButtonElement | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Fetch notifications
   useEffect(() => {
-    // Get admin data from localStorage
-    const adminData = localStorage.getItem("adminUser");
-    if (adminData) {
-      setAdmin(JSON.parse(adminData));
+    let isMounted = true;
+    async function fetchNotifications() {
+      try {
+        // Example: Only show recent orders that are "pending"
+        const ordersResp = await adminService.getOrders({
+          status: "pending",
+          limit: 5,
+        });
+        if (isMounted) {
+          const notifs = (ordersResp.orders || []).map((order: any) => ({
+            id: order._id,
+            message: `Order #${order._id.slice(-8)} (${order.user?.firstName} ${
+              order.user?.lastName
+            }) is pending.`,
+            date: order.createdAt,
+            link: `/admin/orders/${order._id}`,
+            order, // for possible extensions
+          }));
+          setNotifications(notifs);
+        }
+      } catch (e) {
+        // Optionally report error
+      }
     }
+    fetchNotifications();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  // Click outside notification dropdown handler
+  useEffect(() => {
+    function handler(event: MouseEvent) {
+      // @ts-ignore
+      if (notifBtnRef.current && !notifBtnRef.current.contains(event.target)) {
+        setShowNotifDropdown(false);
+      }
+    }
+    if (showNotifDropdown) {
+      document.addEventListener("mousedown", handler);
+    }
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showNotifDropdown]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
   const handleLogout = () => {
-    // Clear admin tokens
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminUser");
-
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
     });
-
-    // Redirect to admin login
     navigate("/admin/login");
   };
 
+  const handleNotifBtnClick = () => {
+    setShowNotifDropdown((open) => !open);
+  };
+
+  const handleNotifItemClick = (notif: any) => {
+    setShowNotifDropdown(false);
+    // Go to order detail/admin page if link exists
+    if (notif.link) {
+      navigate(notif.link);
+    }
+  };
+
+  useEffect(() => {
+    const adminData = localStorage.getItem("adminUser");
+    if (adminData) {
+      setAdmin(JSON.parse(adminData));
+    }
+  }, []);
+
   return (
-    // Use flex to arrange sidebar and main content side by side
     <div className="min-h-screen bg-gray-50 m-0 p-0 flex">
       {/* Sidebar */}
       <AdminSidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
 
-      {/* Main area (nav + content) - grows to take rest of horizontal space */}
       <div className="flex-1 flex flex-col m-0 p-0">
         {/* Top Navigation */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-30 m-0 p-0">
@@ -69,16 +124,58 @@ const AdminLayout = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                  3
-                </Badge>
-              </Button>
-
+              {/* Notifications (real) */}
+              <div className="relative" ref={notifBtnRef}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="relative"
+                  onClick={handleNotifBtnClick}
+                  aria-haspopup="true"
+                  aria-expanded={showNotifDropdown}
+                  aria-label="Show notifications"
+                  tabIndex={0}>
+                  <Bell className="h-5 w-5" />
+                  {notifications.length > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                      {notifications.length}
+                    </Badge>
+                  )}
+                </Button>
+                {/* Popover dropdown */}
+                {showNotifDropdown && (
+                  <div className="origin-top-right absolute right-0 mt-2 min-w-[280px] w-[22rem] bg-white border border-gray-200 rounded-lg shadow-lg z-40">
+                    <div className="py-2 px-4 border-b font-semibold text-sm text-gray-800">
+                      Pending Orders
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="text-gray-500 text-center py-6 text-sm">
+                          No pending orders
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <button
+                            key={notif.id}
+                            className="w-full flex text-left px-4 py-3 items-center gap-3 hover:bg-gray-100 transition focus:outline-none"
+                            onClick={() => handleNotifItemClick(notif)}>
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <span className="text-gray-900 text-sm truncate">
+                                {notif.message}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(notif.date).toLocaleString()}
+                              </span>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
               {/* Admin Profile */}
               <div className="flex items-center space-x-3">
                 <div className="text-right">

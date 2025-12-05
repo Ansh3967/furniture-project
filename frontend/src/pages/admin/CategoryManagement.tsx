@@ -51,6 +51,7 @@ const CategoryManagement = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
     name: "",
+    // Always keep isActive true and never allow editing:
     isActive: true,
   });
   const { toast } = useToast();
@@ -64,7 +65,13 @@ const CategoryManagement = () => {
     try {
       setLoading(true);
       const response = await categoryService.adminGetAllCategories();
-      setCategories(response.categories);
+      setCategories(
+        // Ensure all categories are always active (for display)
+        response.categories.map((cat: Category) => ({
+          ...cat,
+          isActive: true,
+        }))
+      );
     } catch (error) {
       console.error("Failed to load categories:", error);
       toast({
@@ -83,7 +90,13 @@ const CategoryManagement = () => {
         name: formData.name,
       });
 
-      setCategories([...categories, response.category]);
+      setCategories([
+        ...categories,
+        {
+          ...response.category,
+          isActive: true, // Always active
+        },
+      ]);
       setIsAddDialogOpen(false);
       setFormData({ name: "", isActive: true });
 
@@ -113,7 +126,9 @@ const CategoryManagement = () => {
 
       setCategories(
         categories.map((cat) =>
-          cat._id === editingCategory._id ? response.category : cat
+          cat._id === editingCategory._id
+            ? { ...response.category, isActive: true }
+            : { ...cat, isActive: true }
         )
       );
 
@@ -153,17 +168,19 @@ const CategoryManagement = () => {
   };
 
   const openEditDialog = (category: Category) => {
-    setEditingCategory(category);
+    setEditingCategory({ ...category, isActive: true });
     setFormData({
       name: category.name,
-      isActive: category.isActive,
+      isActive: true, // Always true
     });
     setIsEditDialogOpen(true);
   };
 
-  const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCategories = categories
+    .map((cat) => ({ ...cat, isActive: true })) // Ensure all rows are always active on display
+    .filter((category) =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   if (loading) {
     return (
@@ -211,6 +228,7 @@ const CategoryManagement = () => {
                   placeholder="Enter category name"
                 />
               </div>
+              {/* No isActive toggle, always active */}
             </div>
             <DialogFooter>
               <Button
@@ -270,10 +288,7 @@ const CategoryManagement = () => {
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell>{category.itemCount}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={category.isActive ? "default" : "secondary"}>
-                      {category.isActive ? "Active" : "Inactive"}
-                    </Badge>
+                    <Badge variant="default">Active</Badge>
                   </TableCell>
                   <TableCell>{category.createdAt}</TableCell>
                   <TableCell className="text-right">
@@ -339,6 +354,7 @@ const CategoryManagement = () => {
                 placeholder="Enter category name"
               />
             </div>
+            {/* No isActive input/toggle: always active */}
           </div>
           <DialogFooter>
             <Button

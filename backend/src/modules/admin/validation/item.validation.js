@@ -50,26 +50,37 @@ export const add = {
   quantity: Joi.number().integer().min(0).default(0),
 };
 
+// EDIT: Relax price & rentPrice requirement for PATCH body (edit)
+// Accept partial updates for price/rentPrice; do not require them based on saleType unless present in body
 export const edit = {
   name: Joi.string().trim(),
   description: Joi.string().trim(),
   category: Joi.string().hex().length(24),
   availability: Joi.string().valid("available", "out_of_stock", "discontinued"),
   saleType: Joi.string().valid("sale", "rent", "both"),
-  price: Joi.number()
-    .min(0)
-    .when("saleType", {
-      is: Joi.string().valid("sale", "both"),
-      then: Joi.required(),
-      otherwise: Joi.optional().allow(null, ""),
-    }),
-  rentPrice: Joi.number()
-    .min(0)
-    .when("saleType", {
-      is: Joi.string().valid("rent", "both"),
-      then: Joi.required(),
-      otherwise: Joi.optional().allow(null, ""),
-    }),
+  // Only validate "price" required if it is present in payload, otherwise don't require at all
+  price: Joi.alternatives().conditional("saleType", {
+    is: Joi.exist(),
+    then: Joi.number()
+      .min(0)
+      .when("saleType", {
+        is: Joi.string().valid("sale", "both"),
+        then: Joi.optional(),
+        otherwise: Joi.optional(),
+      }),
+    otherwise: Joi.number().min(0).optional(),
+  }),
+  rentPrice: Joi.alternatives().conditional("saleType", {
+    is: Joi.exist(),
+    then: Joi.number()
+      .min(0)
+      .when("saleType", {
+        is: Joi.string().valid("rent", "both"),
+        then: Joi.optional(),
+        otherwise: Joi.optional(),
+      }),
+    otherwise: Joi.number().min(0).optional(),
+  }),
   depositPrice: Joi.number().min(0),
   images: Joi.array().items(Joi.string().hex().length(24)),
   specifications: Joi.object({

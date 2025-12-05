@@ -1,22 +1,19 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard,
   Package,
   FolderOpen,
-  Image,
   Users,
   ShoppingCart,
-  BarChart3,
   Settings,
   LogOut,
-  Menu,
-  X
-} from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
+  X,
+} from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -29,65 +26,80 @@ const AdminSidebar = ({ isOpen, onToggle }: SidebarProps) => {
 
   const navigation = [
     {
-      name: 'Dashboard',
-      href: '/admin',
+      name: "Dashboard",
+      href: "/admin",
       icon: LayoutDashboard,
-      current: location.pathname === '/admin'
+      current: location.pathname === "/admin",
     },
     {
-      name: 'Items',
-      href: '/admin/items',
+      name: "Items",
+      href: "/admin/items",
       icon: Package,
-      current: location.pathname.startsWith('/admin/items')
+      current: location.pathname.startsWith("/admin/items"),
     },
     {
-      name: 'Categories',
-      href: '/admin/categories',
+      name: "Categories",
+      href: "/admin/categories",
       icon: FolderOpen,
-      current: location.pathname.startsWith('/admin/categories')
+      current: location.pathname.startsWith("/admin/categories"),
     },
     {
-      name: 'Users',
-      href: '/admin/users',
+      name: "Users",
+      href: "/admin/users",
       icon: Users,
-      current: location.pathname.startsWith('/admin/users')
+      current: location.pathname.startsWith("/admin/users"),
     },
     {
-      name: 'Orders',
-      href: '/admin/orders',
+      name: "Orders",
+      href: "/admin/orders",
       icon: ShoppingCart,
-      current: location.pathname.startsWith('/admin/orders')
+      current: location.pathname.startsWith("/admin/orders"),
     },
     {
-      name: 'Settings',
-      href: '/admin/settings',
+      name: "Settings",
+      href: "/admin/settings",
       icon: Settings,
-      current: location.pathname.startsWith('/admin/settings')
-    }
+      current: location.pathname.startsWith("/admin/settings"),
+    },
   ];
 
   const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
+    dispatch({ type: "LOGOUT" });
   };
 
   return (
     <>
       {/* Mobile backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onToggle}
         />
       )}
 
       {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="flex flex-col h-full">
+      <aside
+        className={cn(
+          // On large screens, static and fits height, not overlay
+          // On mobile, fixed and sliding in/out
+          "z-40 w-64 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out flex-shrink-0 flex flex-col",
+          "lg:static lg:inset-y-0 lg:translate-x-0",
+          isOpen
+            ? "fixed inset-y-0 left-0 translate-x-0"
+            : "fixed inset-y-0 -translate-x-full left-0"
+        )}
+        style={{
+          height: "100dvh", // Modern CSS for full *physical* viewport height, not extending past if body is long
+          maxHeight: "100dvh",
+          position:
+            typeof window !== "undefined" && window.innerWidth >= 1024
+              ? "static"
+              : undefined,
+        }}
+        aria-label="Sidebar">
+        <div className="flex flex-col h-full max-h-[100dvh]">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-none">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Package className="h-5 w-5 text-white" />
@@ -97,18 +109,18 @@ const AdminSidebar = ({ isOpen, onToggle }: SidebarProps) => {
                 <p className="text-xs text-muted-foreground">Furniture Store</p>
               </div>
             </div>
+            {/* Show close button only on mobile */}
             <Button
               variant="ghost"
               size="sm"
               onClick={onToggle}
-              className="lg:hidden"
-            >
+              className="lg:hidden">
               <X className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -124,32 +136,26 @@ const AdminSidebar = ({ isOpen, onToggle }: SidebarProps) => {
                   if (window.innerWidth < 1024) {
                     onToggle();
                   }
-                }}
-              >
+                }}>
                 <item.icon className="mr-3 h-5 w-5" />
                 {item.name}
-                {item.name === 'Orders' && (
-                  <Badge variant="secondary" className="ml-auto">
-                    3
-                  </Badge>
-                )}
+                {item.name === "Orders"}
               </Link>
             ))}
           </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-200">
+          {/* Footer (remains at the bottom of the visible area) */}
+          <div className="p-4 border-t border-gray-200 flex-none">
             <Button
               variant="ghost"
               className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={handleLogout}
-            >
+              onClick={handleLogout}>
               <LogOut className="mr-3 h-4 w-4" />
               Sign Out
             </Button>
           </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 };
