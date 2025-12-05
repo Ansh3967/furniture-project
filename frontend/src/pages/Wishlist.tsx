@@ -46,14 +46,19 @@ const Wishlist = () => {
       if (typeof img === 'object' && 'url' in img) return img.url;
       return '/placeholder.svg';
     };
-    
+
+    // Map the saleType to allowed Furniture type ("sell" | "rent" | "both")
+    let furnitureType: 'sell' | 'rent' | 'both' = 'sell';
+    if (item.saleType === 'rent') furnitureType = 'rent';
+    else if (item.saleType === 'both') furnitureType = 'both';
+
     // Convert Item to Furniture format for cart
     const furniture = {
       id: item._id,
       title: item.name,
       description: item.description,
       category: item.category?.name || 'Unknown',
-      type: item.saleType === 'sale' ? 'sell' : item.saleType,
+      type: furnitureType,
       price: item.price || 0,
       rentPrice: item.rentPrice || 0,
       deposit: item.depositPrice || 0,
@@ -71,7 +76,7 @@ const Wishlist = () => {
       payload: {
         furniture,
         quantity: 1,
-        type: item.saleType === 'rent' ? 'rent' : 'sell'
+        type: furnitureType,
       }
     });
   };
@@ -204,7 +209,6 @@ const Wishlist = () => {
                     </div>
                   </CardContent>
                 </Link>
-                
                 <div className="flex space-x-2 mt-4 px-6 pb-6" onClick={(e) => e.stopPropagation()}>
                   <Button 
                     className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
