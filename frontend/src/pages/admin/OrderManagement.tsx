@@ -1,14 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Eye, Package, Calendar, DollarSign, User, Edit, Save, X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { adminService, Order } from '@/services/adminService';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  Filter,
+  Eye,
+  Package,
+  Calendar,
+  DollarSign,
+  User,
+  Edit,
+  Save,
+  X,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { adminService, Order } from "@/services/adminService";
+import { format } from "date-fns";
 
 interface OrderItem {
   item: {
@@ -21,7 +60,7 @@ interface OrderItem {
   name: string;
   quantity: number;
   price: number;
-  type: 'sell' | 'rent';
+  type: "sell" | "rent";
 }
 
 interface Order {
@@ -36,9 +75,17 @@ interface Order {
   };
   items: OrderItem[];
   total: number;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'completed' | 'cancelled' | 'returned';
-  type: 'purchase' | 'rental';
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  status:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "completed"
+    | "cancelled"
+    | "returned";
+  type: "purchase" | "rental";
+  paymentStatus: "pending" | "paid" | "failed" | "refunded";
   paymentMethod: string;
   shippingAddress: string;
   notes?: string;
@@ -52,18 +99,18 @@ interface Order {
 const OrderManagement = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [editForm, setEditForm] = useState({
-    status: '',
-    paymentStatus: '',
-    notes: '',
-    trackingNumber: '',
-    shippingAddress: ''
+    status: "",
+    paymentStatus: "",
+    notes: "",
+    trackingNumber: "",
+    shippingAddress: "",
   });
   const { toast } = useToast();
 
@@ -75,7 +122,7 @@ const OrderManagement = () => {
         const response = await adminService.getOrders();
         setOrders(response.orders || []);
       } catch (error) {
-        console.error('Failed to load orders:', error);
+        console.error("Failed to load orders:", error);
         toast({
           title: "Error",
           description: "Failed to load orders. Please try again.",
@@ -94,20 +141,26 @@ const OrderManagement = () => {
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
       await adminService.updateOrderStatus(orderId, newStatus);
-      
+
       // Update local state
-      setOrders(orders.map(order => 
-        order._id === orderId 
-          ? { ...order, status: newStatus as any, updatedAt: new Date().toISOString() }
-          : order
-      ));
-      
+      setOrders(
+        orders.map((order) =>
+          order._id === orderId
+            ? {
+                ...order,
+                status: newStatus as any,
+                updatedAt: new Date().toISOString(),
+              }
+            : order,
+        ),
+      );
+
       toast({
         title: "Order Status Updated",
         description: `Order status has been updated to ${newStatus}.`,
       });
     } catch (error) {
-      console.error('Failed to update order status:', error);
+      console.error("Failed to update order status:", error);
       toast({
         title: "Error",
         description: "Failed to update order status. Please try again.",
@@ -122,9 +175,9 @@ const OrderManagement = () => {
     setEditForm({
       status: order.status,
       paymentStatus: order.paymentStatus,
-      notes: order.notes || '',
-      trackingNumber: order.trackingNumber || '',
-      shippingAddress: order.shippingAddress
+      notes: order.notes || "",
+      trackingNumber: order.trackingNumber || "",
+      shippingAddress: order.shippingAddress,
     });
   };
 
@@ -132,11 +185,11 @@ const OrderManagement = () => {
   const cancelEditing = () => {
     setEditingOrder(null);
     setEditForm({
-      status: '',
-      paymentStatus: '',
-      notes: '',
-      trackingNumber: '',
-      shippingAddress: ''
+      status: "",
+      paymentStatus: "",
+      notes: "",
+      trackingNumber: "",
+      shippingAddress: "",
     });
   };
 
@@ -147,33 +200,48 @@ const OrderManagement = () => {
     try {
       // Update order status if changed
       if (editForm.status !== editingOrder.status) {
-        await adminService.updateOrderStatus(editingOrder._id, editForm.status, editForm.notes);
+        await adminService.updateOrderStatus(
+          editingOrder._id,
+          editForm.status,
+          editForm.notes,
+        );
       }
 
       // Update payment status if changed
       if (editForm.paymentStatus !== editingOrder.paymentStatus) {
-        await adminService.updatePaymentStatus(editingOrder._id, editForm.paymentStatus);
+        await adminService.updatePaymentStatus(
+          editingOrder._id,
+          editForm.paymentStatus,
+        );
       }
 
       // Add tracking number if provided
-      if (editForm.trackingNumber && editForm.trackingNumber !== editingOrder.trackingNumber) {
-        await adminService.addTrackingNumber(editingOrder._id, editForm.trackingNumber);
+      if (
+        editForm.trackingNumber &&
+        editForm.trackingNumber !== editingOrder.trackingNumber
+      ) {
+        await adminService.addTrackingNumber(
+          editingOrder._id,
+          editForm.trackingNumber,
+        );
       }
 
       // Update local state
-      setOrders(orders.map(order => 
-        order._id === editingOrder._id 
-          ? { 
-              ...order, 
-              status: editForm.status as any,
-              paymentStatus: editForm.paymentStatus as any,
-              notes: editForm.notes,
-              trackingNumber: editForm.trackingNumber,
-              shippingAddress: editForm.shippingAddress,
-              updatedAt: new Date().toISOString() 
-            }
-          : order
-      ));
+      setOrders(
+        orders.map((order) =>
+          order._id === editingOrder._id
+            ? {
+                ...order,
+                status: editForm.status as any,
+                paymentStatus: editForm.paymentStatus as any,
+                notes: editForm.notes,
+                trackingNumber: editForm.trackingNumber,
+                shippingAddress: editForm.shippingAddress,
+                updatedAt: new Date().toISOString(),
+              }
+            : order,
+        ),
+      );
 
       toast({
         title: "Order Updated",
@@ -182,7 +250,7 @@ const OrderManagement = () => {
 
       cancelEditing();
     } catch (error) {
-      console.error('Failed to update order:', error);
+      console.error("Failed to update order:", error);
       toast({
         title: "Error",
         description: "Failed to update order. Please try again.",
@@ -198,33 +266,45 @@ const OrderManagement = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'shipped': return 'bg-purple-100 text-purple-800';
-      case 'delivered': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "processing":
+        return "bg-blue-100 text-blue-800";
+      case "shipped":
+        return "bg-purple-100 text-purple-800";
+      case "delivered":
+        return "bg-green-100 text-green-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'refunded': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "paid":
+        return "bg-green-100 text-green-800";
+      case "failed":
+        return "bg-red-100 text-red-800";
+      case "refunded":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = orders.filter((order) => {
     const customerName = `${order.user.firstName} ${order.user.lastName}`;
-    const matchesSearch = 
+    const matchesSearch =
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    const matchesType = typeFilter === 'all' || order.type === typeFilter;
+    const matchesStatus =
+      statusFilter === "all" || order.status === statusFilter;
+    const matchesType = typeFilter === "all" || order.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
 
@@ -241,7 +321,9 @@ const OrderManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Order Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Order Management
+          </h1>
           <p className="text-muted-foreground">
             Track and manage customer orders
           </p>
@@ -296,9 +378,7 @@ const OrderManagement = () => {
       <Card>
         <CardHeader>
           <CardTitle>Orders ({filteredOrders.length})</CardTitle>
-          <CardDescription>
-            Manage and track customer orders
-          </CardDescription>
+          <CardDescription>Manage and track customer orders</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -320,13 +400,19 @@ const OrderManagement = () => {
                   <TableCell>
                     <div>
                       <p className="font-medium">{order.orderNumber}</p>
-                      <p className="text-sm text-muted-foreground">#{order._id}</p>
+                      <p className="text-sm text-muted-foreground">
+                        #{order._id}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{order.user.firstName} {order.user.lastName}</p>
-                      <p className="text-sm text-muted-foreground">{order.user.email}</p>
+                      <p className="font-medium">
+                        {order.user.firstName} {order.user.lastName}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {order.user.email}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -334,15 +420,20 @@ const OrderManagement = () => {
                       {order.items.map((item, index) => (
                         <div key={index} className="text-sm">
                           <span className="font-medium">{item.name}</span>
-                          <span className="text-muted-foreground"> x{item.quantity}</span>
+                          <span className="text-muted-foreground">
+                            {" "}
+                            x{item.quantity}
+                          </span>
                         </div>
                       ))}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{order.total.toLocaleString()}</span>
+                      {/* <DollarSign className="h-4 w-4 text-muted-foreground" /> */}
+                      <span className="font-medium">
+                        ₹ {order.total.toLocaleString()}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -350,15 +441,18 @@ const OrderManagement = () => {
                       {editingOrder?._id === order._id ? (
                         <Select
                           value={editForm.status}
-                          onValueChange={(value) => setEditForm({...editForm, status: value})}
-                        >
+                          onValueChange={(value) =>
+                            setEditForm({ ...editForm, status: value })
+                          }>
                           <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="pending">Pending</SelectItem>
                             <SelectItem value="confirmed">Confirmed</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
+                            <SelectItem value="processing">
+                              Processing
+                            </SelectItem>
                             <SelectItem value="shipped">Shipped</SelectItem>
                             <SelectItem value="delivered">Delivered</SelectItem>
                             <SelectItem value="completed">Completed</SelectItem>
@@ -373,7 +467,9 @@ const OrderManagement = () => {
                       )}
                       <div className="flex items-center space-x-1">
                         <Package className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{order.type}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {order.type}
+                        </span>
                       </div>
                     </div>
                   </TableCell>
@@ -381,8 +477,9 @@ const OrderManagement = () => {
                     {editingOrder?._id === order._id ? (
                       <Select
                         value={editForm.paymentStatus}
-                        onValueChange={(value) => setEditForm({...editForm, paymentStatus: value})}
-                      >
+                        onValueChange={(value) =>
+                          setEditForm({ ...editForm, paymentStatus: value })
+                        }>
                         <SelectTrigger className="w-32">
                           <SelectValue />
                         </SelectTrigger>
@@ -394,7 +491,8 @@ const OrderManagement = () => {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Badge className={getPaymentStatusColor(order.paymentStatus)}>
+                      <Badge
+                        className={getPaymentStatusColor(order.paymentStatus)}>
                         {order.paymentStatus}
                       </Badge>
                     )}
@@ -402,7 +500,12 @@ const OrderManagement = () => {
                   <TableCell>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{order.createdAt}</span>
+                      <span className="text-sm">
+                        {format(
+                          new Date(order.createdAt),
+                          "dd MMM yyyy, hh:mm a",
+                        )}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -410,8 +513,7 @@ const OrderManagement = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => openOrderDialog(order)}
-                      >
+                        onClick={() => openOrderDialog(order)}>
                         <Eye className="h-4 w-4" />
                       </Button>
                       {editingOrder?._id === order._id ? (
@@ -420,16 +522,14 @@ const OrderManagement = () => {
                             variant="outline"
                             size="sm"
                             onClick={saveOrderEdits}
-                            className="text-green-600 hover:text-green-700"
-                          >
+                            className="text-green-600 hover:text-green-700">
                             <Save className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={cancelEditing}
-                            className="text-red-600 hover:text-red-700"
-                          >
+                            className="text-red-600 hover:text-red-700">
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
@@ -437,8 +537,7 @@ const OrderManagement = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => startEditing(order)}
-                        >
+                          onClick={() => startEditing(order)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       )}
@@ -455,7 +554,9 @@ const OrderManagement = () => {
       <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Order Details - {selectedOrder?.orderNumber}</DialogTitle>
+            <DialogTitle>
+              Order Details - {selectedOrder?.orderNumber}
+            </DialogTitle>
             <DialogDescription>
               Complete order information and customer details
             </DialogDescription>
@@ -472,9 +573,16 @@ const OrderManagement = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <p><strong>Name:</strong> {selectedOrder.user.firstName} {selectedOrder.user.lastName}</p>
-                    <p><strong>Email:</strong> {selectedOrder.user.email}</p>
-                    <p><strong>Phone:</strong> {selectedOrder.user.phone}</p>
+                    <p>
+                      <strong>Name:</strong> {selectedOrder.user.firstName}{" "}
+                      {selectedOrder.user.lastName}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {selectedOrder.user.email}
+                    </p>
+                    <p>
+                      <strong>Phone:</strong> {selectedOrder.user.phone}
+                    </p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -485,15 +593,23 @@ const OrderManagement = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <p><strong>Order Number:</strong> {selectedOrder.orderNumber}</p>
-                    <p><strong>Type:</strong> {selectedOrder.type}</p>
-                    <p><strong>Status:</strong> 
-                      <Badge className={`ml-2 ${getStatusColor(selectedOrder.status)}`}>
+                    <p>
+                      <strong>Order Number:</strong> {selectedOrder.orderNumber}
+                    </p>
+                    <p>
+                      <strong>Type:</strong> {selectedOrder.type}
+                    </p>
+                    <p>
+                      <strong>Status:</strong>
+                      <Badge
+                        className={`ml-2 ${getStatusColor(selectedOrder.status)}`}>
                         {selectedOrder.status}
                       </Badge>
                     </p>
-                    <p><strong>Payment Status:</strong> 
-                      <Badge className={`ml-2 ${getPaymentStatusColor(selectedOrder.paymentStatus)}`}>
+                    <p>
+                      <strong>Payment Status:</strong>
+                      <Badge
+                        className={`ml-2 ${getPaymentStatusColor(selectedOrder.paymentStatus)}`}>
                         {selectedOrder.paymentStatus}
                       </Badge>
                     </p>
@@ -520,13 +636,17 @@ const OrderManagement = () => {
                     <TableBody>
                       {selectedOrder.items.map((item, index) => (
                         <TableRow key={index}>
-                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {item.name}
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline">{item.type}</Badge>
                           </TableCell>
                           <TableCell>{item.quantity}</TableCell>
                           <TableCell>₹{item.price}</TableCell>
-                          <TableCell>₹{(item.price * item.quantity).toLocaleString()}</TableCell>
+                          <TableCell>
+                            ₹{(item.price * item.quantity).toLocaleString()}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -534,7 +654,9 @@ const OrderManagement = () => {
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold">Total:</span>
-                      <span className="text-lg font-semibold">₹{selectedOrder.total.toLocaleString()}</span>
+                      <span className="text-lg font-semibold">
+                        ₹{selectedOrder.total.toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -552,12 +674,12 @@ const OrderManagement = () => {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsOrderDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsOrderDialogOpen(false)}>
               Close
             </Button>
-            <Button>
-              Update Order
-            </Button>
+            <Button>Update Order</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -571,14 +693,16 @@ const OrderManagement = () => {
               Update order details, status, and tracking information.
             </DialogDescription>
           </DialogHeader>
-          
+
           {editingOrder && (
             <div className="space-y-6">
               {/* Order Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Order Number</label>
-                  <p className="text-sm text-muted-foreground">{editingOrder.orderNumber}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {editingOrder.orderNumber}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Customer</label>
@@ -588,20 +712,28 @@ const OrderManagement = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium">Email</label>
-                  <p className="text-sm text-muted-foreground">{editingOrder.user.email}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {editingOrder.user.email}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Phone</label>
-                  <p className="text-sm text-muted-foreground">{editingOrder.user.phone}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {editingOrder.user.phone}
+                  </p>
                 </div>
               </div>
 
               {/* Order Items */}
               <div>
-                <label className="text-sm font-medium mb-2 block">Order Items</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Order Items
+                </label>
                 <div className="space-y-2">
                   {editingOrder.items.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-3 border rounded-lg">
                       <div>
                         <p className="font-medium">{item.name}</p>
                         <p className="text-sm text-muted-foreground">
@@ -620,8 +752,9 @@ const OrderManagement = () => {
                   <label className="text-sm font-medium">Order Status</label>
                   <Select
                     value={editForm.status}
-                    onValueChange={(value) => setEditForm({...editForm, status: value})}
-                  >
+                    onValueChange={(value) =>
+                      setEditForm({ ...editForm, status: value })
+                    }>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -642,8 +775,9 @@ const OrderManagement = () => {
                   <label className="text-sm font-medium">Payment Status</label>
                   <Select
                     value={editForm.paymentStatus}
-                    onValueChange={(value) => setEditForm({...editForm, paymentStatus: value})}
-                  >
+                    onValueChange={(value) =>
+                      setEditForm({ ...editForm, paymentStatus: value })
+                    }>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -660,14 +794,21 @@ const OrderManagement = () => {
                   <label className="text-sm font-medium">Tracking Number</label>
                   <Input
                     value={editForm.trackingNumber}
-                    onChange={(e) => setEditForm({...editForm, trackingNumber: e.target.value})}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        trackingNumber: e.target.value,
+                      })
+                    }
                     placeholder="Enter tracking number"
                   />
                 </div>
 
                 <div>
                   <label className="text-sm font-medium">Payment Method</label>
-                  <p className="text-sm text-muted-foreground">{editingOrder.paymentMethod}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {editingOrder.paymentMethod}
+                  </p>
                 </div>
               </div>
 
@@ -675,7 +816,12 @@ const OrderManagement = () => {
                 <label className="text-sm font-medium">Shipping Address</label>
                 <Input
                   value={editForm.shippingAddress}
-                  onChange={(e) => setEditForm({...editForm, shippingAddress: e.target.value})}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      shippingAddress: e.target.value,
+                    })
+                  }
                   placeholder="Enter shipping address"
                 />
               </div>
@@ -684,7 +830,9 @@ const OrderManagement = () => {
                 <label className="text-sm font-medium">Notes</label>
                 <Input
                   value={editForm.notes}
-                  onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, notes: e.target.value })
+                  }
                   placeholder="Add notes about this order"
                 />
               </div>
@@ -692,7 +840,9 @@ const OrderManagement = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Total Amount</label>
-                  <p className="text-lg font-bold">${editingOrder.total.toLocaleString()}</p>
+                  <p className="text-lg font-bold">
+                    ${editingOrder.total.toLocaleString()}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Order Date</label>
@@ -708,9 +858,7 @@ const OrderManagement = () => {
             <Button variant="outline" onClick={cancelEditing}>
               Cancel
             </Button>
-            <Button onClick={saveOrderEdits}>
-              Save Changes
-            </Button>
+            <Button onClick={saveOrderEdits}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

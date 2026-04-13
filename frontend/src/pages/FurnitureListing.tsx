@@ -70,7 +70,6 @@ const FurnitureListing = () => {
   // Get furniture with images and valid records
   const furnitureWithImages = useMemo(() => {
     return items.map((item) => {
-      
       const imageUrls = Array.isArray(item.images)
         ? item.images
             .map((img: any) => {
@@ -82,7 +81,6 @@ const FurnitureListing = () => {
             .filter((url): url is string => Boolean(url))
         : [];
 
-      
       // Only use images from backend, no fallback images
       const finalImages = imageUrls.length > 0 ? imageUrls : [];
 
@@ -143,13 +141,25 @@ const FurnitureListing = () => {
       // Only filter on price if price exists for sell, or rentPrice exists for rent
       // Price range applies according to how the item can be bought/rented
       let show = false;
-      if ((item.type === "sell" || item.type === "both") && typeof item.price === "number") {
-        if (item.price >= state.priceRange[0] && item.price <= state.priceRange[1]) {
+      if (
+        (item.type === "sell" || item.type === "both") &&
+        typeof item.price === "number"
+      ) {
+        if (
+          item.price >= state.priceRange[0] &&
+          item.price <= state.priceRange[1]
+        ) {
           show = true;
         }
       }
-      if ((item.type === "rent" || item.type === "both") && typeof item.rentPrice === "number") {
-        if (item.rentPrice >= state.priceRange[0] && item.rentPrice <= state.priceRange[1]) {
+      if (
+        (item.type === "rent" || item.type === "both") &&
+        typeof item.rentPrice === "number"
+      ) {
+        if (
+          item.rentPrice >= state.priceRange[0] &&
+          item.rentPrice <= state.priceRange[1]
+        ) {
           show = true;
         }
       }
@@ -162,13 +172,21 @@ const FurnitureListing = () => {
       // For sorting, use the price or rentPrice accordingly (lowest found on each product)
       const getNum = (item: any) => {
         const priceArr: number[] = [];
-        if ((item.type === "sell" || item.type === "both") && typeof item.price === "number") {
+        if (
+          (item.type === "sell" || item.type === "both") &&
+          typeof item.price === "number"
+        ) {
           priceArr.push(item.price);
         }
-        if ((item.type === "rent" || item.type === "both") && typeof item.rentPrice === "number") {
+        if (
+          (item.type === "rent" || item.type === "both") &&
+          typeof item.rentPrice === "number"
+        ) {
           priceArr.push(item.rentPrice);
         }
-        return priceArr.length > 0 ? Math.min(...priceArr) : Number.POSITIVE_INFINITY;
+        return priceArr.length > 0
+          ? Math.min(...priceArr)
+          : Number.POSITIVE_INFINITY;
       };
 
       switch (sortBy) {
@@ -433,58 +451,64 @@ const FurnitureListing = () => {
 
                     <div className="space-y-2">
                       {/* Only show sell price if furniture.type is "sell" or "both" */}
-                      {(furniture.type === "sell" || furniture.type === "both") && typeof furniture.price === "number" && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-primary">
-                            ₹{furniture.price}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            Purchase
-                          </span>
-                        </div>
-                      )}
-                      {/* Only show rent price if type is "rent" or "both" and rentPrice is defined */}
-                      {(furniture.type === "rent" || furniture.type === "both") && typeof furniture.rentPrice === "number" && (
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <span className="text-lg font-bold text-accent">
-                              ₹{furniture.rentPrice}/mo
+                      {(furniture.type === "sell" ||
+                        furniture.type === "both") &&
+                        typeof furniture.price === "number" && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-lg font-bold text-primary">
+                              ₹{furniture.price}
                             </span>
-                            {typeof furniture.depositPrice === "number" && (
-                              <span className="text-sm text-muted-foreground block">
-                                + ₹{furniture.depositPrice} deposit
-                              </span>
-                            )}
+                            <span className="text-sm text-muted-foreground">
+                              Purchase
+                            </span>
                           </div>
-                          <span className="text-sm text-muted-foreground">
-                            Rental
-                          </span>
-                        </div>
-                      )}
+                        )}
+                      {/* Only show rent price if type is "rent" or "both" and rentPrice is defined */}
+                      {(furniture.type === "rent" ||
+                        furniture.type === "both") &&
+                        typeof furniture.rentPrice === "number" && (
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className="text-lg font-bold text-accent">
+                                ₹{furniture.rentPrice}/mo
+                              </span>
+                              {typeof furniture.depositPrice === "number" && (
+                                <span className="text-sm text-muted-foreground block">
+                                  + ₹{furniture.depositPrice} deposit
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              Rental
+                            </span>
+                          </div>
+                        )}
                     </div>
                   </CardContent>
 
                   <CardFooter className="p-4 pt-0 flex gap-2">
                     {/* Only show Buy button if type is "sell" or "both" and sell price exists */}
-                    {(furniture.type === "sell" || furniture.type === "both") && typeof furniture.price === "number" && (
-                      <Button
-                        size="sm"
-                        onClick={() => handleAddToCart(furniture, "sell")}
-                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold">
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Buy
-                      </Button>
-                    )}
-                    {(furniture.type === "rent" || furniture.type === "both") && typeof furniture.rentPrice === "number" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddToCart(furniture, "rent")}
-                        className="flex-1 border-blue-500 text-blue-600 hover:bg-blue-50 font-semibold">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Rent
-                      </Button>
-                    )}
+                    {(furniture.type === "sell" || furniture.type === "both") &&
+                      typeof furniture.price === "number" && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddToCart(furniture, "sell")}
+                          className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold">
+                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          Buy
+                        </Button>
+                      )}
+                    {(furniture.type === "rent" || furniture.type === "both") &&
+                      typeof furniture.rentPrice === "number" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddToCart(furniture, "rent")}
+                          className="flex-1 border-blue-500 text-blue-600 hover:bg-blue-50 font-semibold">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Rent
+                        </Button>
+                      )}
                   </CardFooter>
                 </Card>
               ))}

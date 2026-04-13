@@ -125,11 +125,11 @@ const ItemManagement = () => {
             description: it.description ?? "",
             categoryId:
               typeof it.category === "object" && it.category
-                ? it.category._id ?? ""
-                : it.category ?? "",
+                ? (it.category._id ?? "")
+                : (it.category ?? ""),
             categoryName:
               typeof it.category === "object" && it.category
-                ? it.category.name ?? ""
+                ? (it.category.name ?? "")
                 : "",
             price: it.price ?? 0,
             rentPrice: it.rentPrice ?? 0,
@@ -138,15 +138,15 @@ const ItemManagement = () => {
               it.saleType === "sale"
                 ? "sell"
                 : it.saleType === "rent"
-                ? "rent"
-                : "both",
+                  ? "rent"
+                  : "both",
             availability: it.availability === "available",
             images: Array.isArray(it.images) ? it.images : [],
             rating: it.rating ?? 0,
             reviewCount: it.reviewCount ?? 0,
             quantity: it.quantity ?? 0,
             createdAt: it.createdAt ?? "",
-          })
+          }),
         );
         setItems(normalized);
       } catch (error) {
@@ -181,7 +181,10 @@ const ItemManagement = () => {
       }
 
       // Validate price fields based on type
-      if (formData.type === "sell" && (!formData.price || formData.price <= 0)) {
+      if (
+        formData.type === "sell" &&
+        (!formData.price || formData.price <= 0)
+      ) {
         toast({
           title: "Validation Error",
           description: "Please enter a valid selling price.",
@@ -190,7 +193,10 @@ const ItemManagement = () => {
         return;
       }
 
-      if (formData.type === "rent" && (!formData.rentPrice || formData.rentPrice <= 0)) {
+      if (
+        formData.type === "rent" &&
+        (!formData.rentPrice || formData.rentPrice <= 0)
+      ) {
         toast({
           title: "Validation Error",
           description: "Please enter a valid rent price.",
@@ -220,27 +226,40 @@ const ItemManagement = () => {
 
       // Create FormData to handle file uploads
       const formDataToSend = new FormData();
-      
+
       // Append text fields
       formDataToSend.append("name", formData.title);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("category", formData.category);
-      formDataToSend.append("availability", formData.availability ? "available" : "out_of_stock");
-      formDataToSend.append("saleType", formData.type === "sell" ? "sale" : formData.type === "rent" ? "rent" : "both");
-      
+      formDataToSend.append(
+        "availability",
+        formData.availability ? "available" : "out_of_stock",
+      );
+      formDataToSend.append(
+        "saleType",
+        formData.type === "sell"
+          ? "sale"
+          : formData.type === "rent"
+            ? "rent"
+            : "both",
+      );
+
       // Append price fields based on type
       if (formData.type === "sell" || formData.type === "both") {
         formDataToSend.append("price", formData.price.toString());
       }
       if (formData.type === "rent" || formData.type === "both") {
         formDataToSend.append("rentPrice", formData.rentPrice.toString());
-        formDataToSend.append("depositPrice", (formData.deposit || 0).toString());
+        formDataToSend.append(
+          "depositPrice",
+          (formData.deposit || 0).toString(),
+        );
       }
       formDataToSend.append("condition", "new");
       formDataToSend.append("isFeatured", "false");
       formDataToSend.append("viewCount", "0");
       formDataToSend.append("quantity", (formData.quantity || 0).toString());
-      
+
       // Append image files
       if (formData.images && formData.images.length > 0) {
         formData.images.forEach((file) => {
@@ -252,7 +271,7 @@ const ItemManagement = () => {
         name: formData.title,
         description: formData.description,
         category: formData.category,
-        imagesCount: formData.images.length
+        imagesCount: formData.images.length,
       });
       console.log("Available categories:", categories);
 
@@ -276,10 +295,11 @@ const ItemManagement = () => {
           newItem.saleType === "sale"
             ? "sell"
             : newItem.saleType === "rent"
-            ? "rent"
-            : "both",
+              ? "rent"
+              : "both",
         availability: newItem.availability === "available",
-        images: newItem.images && newItem.images.length > 0 ? newItem.images : [],
+        images:
+          newItem.images && newItem.images.length > 0 ? newItem.images : [],
         rating: 0,
         reviewCount: 0,
         quantity: newItem.quantity ?? 0,
@@ -343,7 +363,10 @@ const ItemManagement = () => {
       }
 
       // Validate price fields based on type
-      if (formData.type === "sell" && (!formData.price || formData.price <= 0)) {
+      if (
+        formData.type === "sell" &&
+        (!formData.price || formData.price <= 0)
+      ) {
         toast({
           title: "Validation Error",
           description: "Please enter a valid selling price.",
@@ -352,7 +375,10 @@ const ItemManagement = () => {
         return;
       }
 
-      if (formData.type === "rent" && (!formData.rentPrice || formData.rentPrice <= 0)) {
+      if (
+        formData.type === "rent" &&
+        (!formData.rentPrice || formData.rentPrice <= 0)
+      ) {
         toast({
           title: "Validation Error",
           description: "Please enter a valid rent price.",
@@ -382,14 +408,24 @@ const ItemManagement = () => {
 
       // Create FormData to handle file uploads
       const formDataToSend = new FormData();
-      
+
       // Append text fields
       formDataToSend.append("name", formData.title);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("category", formData.category);
-      formDataToSend.append("availability", formData.availability ? "available" : "out_of_stock");
-      formDataToSend.append("saleType", formData.type === "sell" ? "sale" : formData.type === "rent" ? "rent" : "both");
-      
+      formDataToSend.append(
+        "availability",
+        formData.availability ? "available" : "out_of_stock",
+      );
+      formDataToSend.append(
+        "saleType",
+        formData.type === "sell"
+          ? "sale"
+          : formData.type === "rent"
+            ? "rent"
+            : "both",
+      );
+
       // Append price fields based on type
       // Frontend validation ensures these are valid, so we can safely send them
       if (formData.type === "sell" || formData.type === "both") {
@@ -397,10 +433,13 @@ const ItemManagement = () => {
       }
       if (formData.type === "rent" || formData.type === "both") {
         formDataToSend.append("rentPrice", formData.rentPrice.toString());
-        formDataToSend.append("depositPrice", (formData.deposit || 0).toString());
+        formDataToSend.append(
+          "depositPrice",
+          (formData.deposit || 0).toString(),
+        );
       }
       formDataToSend.append("quantity", (formData.quantity || 0).toString());
-      
+
       // Append image files if any new images are uploaded
       if (formData.images && formData.images.length > 0) {
         formData.images.forEach((file) => {
@@ -409,7 +448,10 @@ const ItemManagement = () => {
       }
 
       // API call to update item with FormData
-      const response = await adminService.updateItem(editingItem._id, formDataToSend);
+      const response = await adminService.updateItem(
+        editingItem._id,
+        formDataToSend,
+      );
       const updatedItem = response.item;
 
       // Transform the response to match frontend structure
@@ -428,8 +470,8 @@ const ItemManagement = () => {
           updatedItem.saleType === "sale"
             ? "sell"
             : updatedItem.saleType === "rent"
-            ? "rent"
-            : "both",
+              ? "rent"
+              : "both",
         availability: updatedItem.availability === "available",
         images: updatedItem.images || editingItem.images,
         rating: editingItem.rating,
@@ -440,8 +482,8 @@ const ItemManagement = () => {
 
       setItems(
         items.map((item) =>
-          item._id === editingItem._id ? transformedItem : item
-        )
+          item._id === editingItem._id ? transformedItem : item,
+        ),
       );
 
       setIsEditDialogOpen(false);
@@ -520,8 +562,8 @@ const ItemManagement = () => {
       await adminService.updateItem(row._id, { availability: newAvailability });
       setItems(
         items.map((it) =>
-          it._id === row._id ? { ...it, availability: !row.availability } : it
-        )
+          it._id === row._id ? { ...it, availability: !row.availability } : it,
+        ),
       );
       toast({
         title: "Status Updated",
@@ -675,8 +717,8 @@ const ItemManagement = () => {
                     value={formData.type}
                     onValueChange={(value: "sell" | "rent" | "both") => {
                       // Reset prices when type changes
-                      setFormData({ 
-                        ...formData, 
+                      setFormData({
+                        ...formData,
                         type: value,
                         price: value === "rent" ? 0 : formData.price,
                         rentPrice: value === "sell" ? 0 : formData.rentPrice,
@@ -960,15 +1002,15 @@ const ItemManagement = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
-                      <Button
+                      {/* <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleToggleFeatured(item)}>
                         <Star className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
+                      </Button> */}
+                      {/* <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4" />
-                      </Button>
+                      </Button> */}
                       <Button
                         variant="outline"
                         size="sm"
@@ -1067,8 +1109,8 @@ const ItemManagement = () => {
                   value={formData.type}
                   onValueChange={(value: "sell" | "rent" | "both") => {
                     // Reset prices when type changes
-                    setFormData({ 
-                      ...formData, 
+                    setFormData({
+                      ...formData,
                       type: value,
                       price: value === "rent" ? 0 : formData.price,
                       rentPrice: value === "sell" ? 0 : formData.rentPrice,

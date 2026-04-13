@@ -41,6 +41,7 @@ import {
 import { Plus, Edit, Trash2, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { categoryService, Category } from "@/services/categoryService";
+import { format } from "date-fns";
 
 const CategoryManagement = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -70,7 +71,7 @@ const CategoryManagement = () => {
         response.categories.map((cat: Category) => ({
           ...cat,
           isActive: true,
-        }))
+        })),
       );
     } catch (error) {
       console.error("Failed to load categories:", error);
@@ -121,15 +122,15 @@ const CategoryManagement = () => {
         editingCategory._id,
         {
           name: formData.name,
-        }
+        },
       );
 
       setCategories(
         categories.map((cat) =>
           cat._id === editingCategory._id
             ? { ...response.category, isActive: true }
-            : { ...cat, isActive: true }
-        )
+            : { ...cat, isActive: true },
+        ),
       );
 
       setIsEditDialogOpen(false);
@@ -179,7 +180,7 @@ const CategoryManagement = () => {
   const filteredCategories = categories
     .map((cat) => ({ ...cat, isActive: true })) // Ensure all rows are always active on display
     .filter((category) =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+      category.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
   if (loading) {
@@ -290,7 +291,12 @@ const CategoryManagement = () => {
                   <TableCell>
                     <Badge variant="default">Active</Badge>
                   </TableCell>
-                  <TableCell>{category.createdAt}</TableCell>
+                  <TableCell>
+                    {format(
+                      new Date(category.createdAt),
+                      "dd MMM yyyy, hh:mm a",
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
                       <Button
