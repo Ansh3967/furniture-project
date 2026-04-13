@@ -26,7 +26,7 @@ export const register = async (req, res) => {
       email,
       password: hashedPassword,
       phone,
-      address: address || '',
+      address,
     });
 
     await user.save();

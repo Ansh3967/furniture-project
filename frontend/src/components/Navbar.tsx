@@ -79,12 +79,13 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center ml-12 space-x-6">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="text-foreground hover:text-primary">
+                  size="sm"
+                  className="text-sm text-foreground hover:text-primary">
                   Categories
                 </Button>
               </DropdownMenuTrigger>
@@ -106,12 +107,12 @@ const Navbar = () => {
             </DropdownMenu>
             <Link
               to="/furniture"
-              className="text-foreground hover:text-primary transition-colors">
+              className="text-sm text-foreground hover:text-primary transition-colors font-medium">
               Browse
             </Link>
             <Link
               to="/about"
-              className="text-foreground hover:text-primary transition-colors">
+              className="text-sm text-foreground hover:text-primary transition-colors font-medium">
               About
             </Link>
           </div>
@@ -136,7 +137,7 @@ const Navbar = () => {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {/* Cart */}
             <Button
               variant="ghost"
@@ -171,14 +172,14 @@ const Navbar = () => {
 
             {/* User/Admin Menu */}
             {state.isAuthenticated ? (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 {/* Admin Panel Button */}
                 {state.userType === "admin" && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => navigate("/admin")}
-                    className="bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-blue-700 border-blue-200 hover:border-blue-300">
+                    className="text-sm bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-blue-700 border-blue-200 hover:border-blue-300">
                     <Shield className="w-4 h-4" />
                   </Button>
                 )}
@@ -189,9 +190,9 @@ const Navbar = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center space-x-2">
+                      className="text-sm flex items-center space-x-2">
                       <User className="w-5 h-5" />
-                      <span className="hidden md:inline">
+                      <span className="hidden md:inline text-sm">
                         {state.userType === "admin"
                           ? state.admin?.username || "Admin"
                           : state.user?.firstName || "User"}
@@ -241,14 +242,18 @@ const Navbar = () => {
                 </DropdownMenu>
               </div>
             ) : (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="text-sm"
                   onClick={() => navigate("/login")}>
                   Login
                 </Button>
-                <Button size="sm" onClick={() => navigate("/signup")}>
+                <Button 
+                  size="sm" 
+                  className="text-sm"
+                  onClick={() => navigate("/signup")}>
                   Register
                 </Button>
               </div>

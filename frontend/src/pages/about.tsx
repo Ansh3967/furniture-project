@@ -219,7 +219,7 @@ const About: React.FC = () => {
                   <div className="w-24 h-24 bg-amber-200 rounded-full mx-auto mb-4 flex items-center justify-center">
                     <Users className="w-12 h-12 text-amber-700" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">Sarah Johnson</h3>
+                  <h3 className="text-xl font-semibold mb-2">Ansh Anadani</h3>
                   <p className="text-amber-600 mb-2">Founder & CEO</p>
                   <p className="text-gray-600 text-sm">
                     With 15 years in interior design, Sarah leads our vision of 
@@ -233,10 +233,10 @@ const About: React.FC = () => {
                   <div className="w-24 h-24 bg-amber-200 rounded-full mx-auto mb-4 flex items-center justify-center">
                     <Users className="w-12 h-12 text-amber-700" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">Michael Chen</h3>
+                  <h3 className="text-xl font-semibold mb-2">Krunal Shivhare</h3>
                   <p className="text-amber-600 mb-2">Head of Design</p>
                   <p className="text-gray-600 text-sm">
-                    Michael brings innovative design concepts and ensures every 
+                    Krunal brings innovative design concepts and ensures every 
                     piece meets our quality standards.
                   </p>
                 </CardContent>
@@ -247,10 +247,10 @@ const About: React.FC = () => {
                   <div className="w-24 h-24 bg-amber-200 rounded-full mx-auto mb-4 flex items-center justify-center">
                     <Users className="w-12 h-12 text-amber-700" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">Emily Rodriguez</h3>
+                  <h3 className="text-xl font-semibold mb-2">Priya Trivedi</h3>
                   <p className="text-amber-600 mb-2">Customer Experience</p>
                   <p className="text-gray-600 text-sm">
-                    Emily ensures every customer receives exceptional service 
+                    Priya ensures every customer receives exceptional service 
                     and finds their perfect furniture solution.
                   </p>
                 </CardContent>
@@ -274,7 +274,7 @@ const About: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center">
                     <Phone className="w-5 h-5 mr-3" />
-                    <span>+1 (555) 123-4567</span>
+                    <span>+91 9999999999</span>
                   </div>
                   <div className="flex items-center">
                     <Mail className="w-5 h-5 mr-3" />
@@ -282,20 +282,20 @@ const About: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <MapPin className="w-5 h-5 mr-3" />
-                    <span>123 Furniture Street, Design City, DC 12345</span>
+                    <span>123 Furniture Street, Thaltej, Ahmedabad, Gujarat, India</span>
                   </div>
                 </div>
                 <div className="flex space-x-4 mt-6">
-                  <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-amber-900">
+                  <Button variant="outline" size="sm" className="border-white text-black hover:bg-white hover:text-amber-900">
                     <Facebook className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-amber-900">
+                  <Button variant="outline" size="sm" className="border-white text-black hover:bg-white hover:text-amber-900">
                     <Twitter className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-amber-900">
+                  <Button variant="outline" size="sm" className="border-white text-black hover:bg-white hover:text-amber-900">
                     <Instagram className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-amber-900">
+                  <Button variant="outline" size="sm" className="border-white text-black hover:bg-white hover:text-amber-900">
                     <Linkedin className="w-4 h-4" />
                   </Button>
                 </div>

@@ -740,7 +740,7 @@ const OrderManagement = () => {
                           Quantity: {item.quantity} | Type: {item.type}
                         </p>
                       </div>
-                      <p className="font-medium">${item.price}</p>
+                      <p className="font-medium">₹{item.price}</p>
                     </div>
                   ))}
                 </div>

@@ -57,6 +57,17 @@ const UserSignup = () => {
       return;
     }
 
+    // Address validation
+    if (!formData.address || formData.address.trim() === '') {
+      toast({
+        title: 'Address required',
+        description: 'Please enter your address.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
       toast({
@@ -176,13 +187,14 @@ const UserSignup = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address">Address (Optional)</Label>
+                <Label htmlFor="address">Address</Label>
                 <Input
                   id="address"
                   type="text"
                   placeholder="Enter your address"
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
+                  required
                 />
               </div>
 
