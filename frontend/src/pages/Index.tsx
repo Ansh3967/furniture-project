@@ -96,9 +96,10 @@ const Index = () => {
                   Beautiful Furniture for
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent"> Every Space</span>
                 </h1>
-                <p className="text-xl text-muted-foreground max-w-lg">
-                  Discover our curated collection of premium home and office furniture. 
-                  Buy or rent with flexible terms and exceptional quality.
+                <p className="text-xl text-muted-foreground max-w-lg text-white">
+                  Discover our curated collection of premium home and office
+                  furniture. Buy or rent with flexible terms and exceptional
+                  quality.
                 </p>
               </div>
               
@@ -231,62 +232,101 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {loading ? (
-                // Loading skeleton
-                Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="bg-gray-200 rounded-lg h-80 animate-pulse" />
-                ))
-              ) : (
-                browseItems.map((item, index) => {
-                  // Fallback images array
-                  const fallbackImages = [chairOffice, deskWalnut, heroLivingRoom, heroOffice, sofaPremium];
-                  const getImageUrl = (img: string | { _id?: string; url: string; altText?: string } | undefined): string => {
-                    if (!img) return '';
-                    if (typeof img === 'string') return img;
-                    if (typeof img === 'object' && 'url' in img) return img.url;
-                    return '';
-                  };
-                  const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
-                  const displayImage = firstImage ? getImageUrl(firstImage) : fallbackImages[index % fallbackImages.length];
-                  
-                  return (
-                  <Link key={item._id} to={`/furniture/${item._id}`}>
-                    <Card className="group hover:shadow-medium transition-shadow">
-                      <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
-                        <img
-                          src={displayImage}
-                          alt={item.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{item.name}</h3>
-                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{item.description}</p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            {item.saleType === 'sale' && item.price && (
-                              <span className="text-lg font-bold text-primary">${item.price}</span>
-                            )}
-                            {item.saleType === 'rent' && item.rentPrice && (
-                              <span className="text-lg font-bold text-primary">${item.rentPrice}/mo</span>
-                            )}
-                            {item.saleType === 'both' && (
-                              <div className="flex flex-col">
-                                {item.price && <span className="text-sm font-bold text-primary">Buy: ${item.price}</span>}
-                                {item.rentPrice && <span className="text-sm font-bold text-primary">Rent: ${item.rentPrice}/mo</span>}
-                              </div>
-                            )}
+              {loading
+                ? // Loading skeleton
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-200 rounded-lg h-80 animate-pulse"
+                    />
+                  ))
+                : browseItems.map((item, index) => {
+                    // Fallback images array
+                    const fallbackImages = [
+                      chairOffice,
+                      deskWalnut,
+                      heroLivingRoom,
+                      heroOffice,
+                      sofaPremium,
+                    ];
+                    const getImageUrl = (
+                      img:
+                        | string
+                        | { _id?: string; url: string; altText?: string }
+                        | undefined,
+                    ): string => {
+                      if (!img) return "";
+                      if (typeof img === "string") return img;
+                      if (typeof img === "object" && "url" in img)
+                        return img.url;
+                      return "";
+                    };
+                    const firstImage =
+                      item.images && item.images.length > 0
+                        ? item.images[0]
+                        : null;
+                    const displayImage = firstImage
+                      ? getImageUrl(firstImage)
+                      : fallbackImages[index % fallbackImages.length];
+
+                    return (
+                      <Link key={item._id} to={`/furniture/${item._id}`}>
+                        <Card className="group hover:shadow-medium transition-shadow">
+                          <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
+                            <img
+                              src={displayImage}
+                              alt={item.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
                           </div>
-                          <Badge variant={item.condition === 'new' ? 'default' : 'secondary'}>
-                            {item.condition}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                  );
-                })
-              )}
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                              {item.name}
+                            </h3>
+                            <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+                              {item.description}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                {item.saleType === "sale" && item.price && (
+                                  <span className="text-lg font-bold text-primary">
+                                    ₹{item.price}
+                                  </span>
+                                )}
+                                {item.saleType === "rent" && item.rentPrice && (
+                                  <span className="text-lg font-bold text-primary">
+                                    ₹{item.rentPrice}/mo
+                                  </span>
+                                )}
+                                {item.saleType === "both" && (
+                                  <div className="flex flex-col">
+                                    {item.price && (
+                                      <span className="text-sm font-bold text-primary">
+                                        Buy: ₹{item.price}
+                                      </span>
+                                    )}
+                                    {item.rentPrice && (
+                                      <span className="text-sm font-bold text-primary">
+                                        Rent: ₹{item.rentPrice}/mo
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              <Badge
+                                variant={
+                                  item.condition === "new"
+                                    ? "default"
+                                    : "secondary"
+                                }>
+                                {item.condition}
+                              </Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
             </div>
 
             <div className="text-center mt-12">
