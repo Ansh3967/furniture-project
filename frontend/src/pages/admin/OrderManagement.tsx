@@ -46,7 +46,7 @@ import {
   X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { adminService, Order } from "@/services/adminService";
+import { adminService } from "@/services/adminService";
 import { format } from "date-fns";
 
 interface OrderItem {
