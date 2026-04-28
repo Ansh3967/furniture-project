@@ -813,7 +813,7 @@ const OrderManagement = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium">Shipping Address</label>
+                {/* <label className="text-sm font-medium">Shipping Address</label>
                 <Input
                   value={editForm.shippingAddress}
                   onChange={(e) =>
@@ -823,7 +823,7 @@ const OrderManagement = () => {
                     })
                   }
                   placeholder="Enter shipping address"
-                />
+                /> */}
               </div>
 
               <div>
@@ -841,7 +841,7 @@ const OrderManagement = () => {
                 <div>
                   <label className="text-sm font-medium">Total Amount</label>
                   <p className="text-lg font-bold">
-                    ${editingOrder.total.toLocaleString()}
+                    ₹{editingOrder.total.toLocaleString()}
                   </p>
                 </div>
                 <div>
